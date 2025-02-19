@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { BackgroundGrid, GradientOrbs } from "./ui/background";
 
 const pacifico = new FontFace('Pacifico', 'url(https://fonts.gstatic.com/s/pacifico/v22/FwZY7-Qmy14u9lezJ-6H6MmBp0u-.woff2)');
 pacifico.load().then(() => {
@@ -65,11 +66,14 @@ export default function Hero({ badge = "AuthManager", title1 = "Unleashing", tit
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#030303]">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+      <BackgroundGrid />
+      <GradientOrbs />
+
       <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb]/[0.05] via-transparent to-white/[0.05] blur-3xl" />
 
       <div className="absolute inset-0 overflow-hidden">
-        <ElegantShape
+      <ElegantShape
           delay={0.3}
           width={600}
           height={140}
@@ -169,8 +173,6 @@ export default function Hero({ badge = "AuthManager", title1 = "Unleashing", tit
           </motion.div>
         </div>
       </div>
-
-      <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
     </div>
   );
 }
