@@ -8,7 +8,7 @@ import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
 import { BASE_API, API_VERSION } from "../../config.json";
 
 export default function Login() {
-    const [datas, setDatas] = useState({ username: '', email: '', password: '' });
+    const [datas, setDatas] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
 
     const fadeInVariants = {
@@ -25,7 +25,6 @@ export default function Login() {
     };
 
     async function login() {
-        if (!datas.username) return setError('Username is required.');
         if (!datas.email) return setError('Email is required.');
         if (!datas.password) return setError('Password is required.');
 
@@ -92,15 +91,6 @@ export default function Login() {
                             className="p-6 space-y-4"
                         >
                             <div className="space-y-4">
-                                <Input
-                                    className="w-full px-4 py-2 bg-white/5 border-white/10 rounded-lg focus:ring-primary/50 focus:border-primary/50 text-white placeholder-white/40"
-                                    type="text"
-                                    name="username"
-                                    id="username"
-                                    placeholder="Username"
-                                    value={datas.username}
-                                    onChange={(e) => setDatas({ ...datas, username: e.target.value })}
-                                />
                                 <Input
                                     className="w-full px-4 py-2 bg-white/5 border-white/10 rounded-lg focus:ring-primary/50 focus:border-primary/50 text-white placeholder-white/40"
                                     type="email"
