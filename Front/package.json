@@ -37,6 +37,7 @@
     "react-boxicons": "^0.0.28",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.2.0",
+    "react-intersection-observer": "^9.15.1",
     "react-responsive": "^10.0.0",
     "react-router-dom": "^6.21.2",
     "resend": "^3.0.0",
