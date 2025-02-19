@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { BackgroundGrid, GradientOrbs } from "./ui/background";
+import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
 
 const pacifico = new FontFace('Pacifico', 'url(https://fonts.gstatic.com/s/pacifico/v22/FwZY7-Qmy14u9lezJ-6H6MmBp0u-.woff2)');
 pacifico.load().then(() => {
