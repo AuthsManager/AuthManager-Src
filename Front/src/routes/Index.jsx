@@ -11,14 +11,20 @@ export default function Home() {
             <GradientOrbs />
             <div className="relative">
                 <Navbar />
-                <Hero 
-                    badge="AuthManager"
-                    title1="Unleashing"
-                    title2="the Ultimate"
-                    title3="Authentication"
-                />
-                <Features />
-                <Pricing />
+                <div id="home">
+                    <Hero 
+                        badge="AuthManager"
+                        title1="Unleashing"
+                        title2="the Ultimate"
+                        title3="Authentication"
+                    />
+                </div>
+                <div id="features">
+                    <Features />
+                </div>
+                <div id="pricing">
+                    <Pricing />
+                </div>
             </div>
         </div>
     );
