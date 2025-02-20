@@ -73,7 +73,7 @@ const Section = ({ title, description, children, noGradient }) => (
         className="mb-12"
     >
         <div className="mb-6">
-            <h2 className={`text-2xl font-bold mb-2 ${noGradient ? 'text-white' : 'bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white'}`}>
+            <h2 className={`text-2xl font-bold mb-2 ${noGradient ? 'text-white' : 'bg-clip-text text-transparent bg-gradient-to-r from-white to-primary'}`}>
                 {title}
             </h2>
             {description && (
@@ -115,10 +115,20 @@ export default function Docs() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const manageButtonClick = () => {
+    const apiRefClick = () => {
         setActiveSection('api-reference.apps');
         if (!expandedSections.includes('api-reference')) {
             setExpandedSections(prev => [...prev, 'api-reference']);
+        }
+        if (isMobile) {
+            setIsSidebarOpen(false);
+        }
+    };
+
+    const quickSetupClick = () => {
+        setActiveSection('getting-started.installation');
+        if (!expandedSections.includes('getting-started')) {
+            setExpandedSections(prev => [...prev, 'getting-started']);
         }
         if (isMobile) {
             setIsSidebarOpen(false);
@@ -148,45 +158,161 @@ export default function Docs() {
                     title: "Introduction",
                     content: (
                         <>
-                            <p className="text-lg text-white/80 leading-relaxed mb-8">
-                                Welcome to the AuthManager API documentation. This comprehensive guide will help you integrate our authentication and license management system into your application.
-                            </p>
-                            
-                            <div className="grid md:grid-cols-2 gap-4 mb-8">
-                                <Card
-                                    title="Quick Setup"
-                                    description="Get started with AuthManager in minutes with our simple setup process."
-                                    icon={ChevronRight}
-                                />
-                                <button 
-                                    onClick={manageButtonClick}
-                                    className="block w-full text-left"
-                                >
-                                    <Card
-                                        title="API Reference"
-                                        description="Explore our complete API reference with examples and use cases."
-                                        icon={ExternalLink}
-                                    />
-                                </button>
-                            </div>
-
-                            <Section title="Base URL" description="All API requests should be made to the following base URL:" noGradient>
+                            <Section title="Welcome to AuthManager" description="A powerful authentication service for your applications.">
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    AuthManager is a robust authentication service that helps you manage user authentication across your applications.
+                                    With our API, you can easily implement secure user authentication, manage applications, and handle user sessions.
+                                </p>
+                                <div className="grid md:grid-cols-2 gap-4 mb-8">
+                                    <button 
+                                        onClick={quickSetupClick}
+                                        className="block w-full text-left"
+                                    >
+                                        <Card
+                                            title="Quick Setup"
+                                            description="Get started with AuthManager in minutes"
+                                            icon={ChevronRight}
+                                        />
+                                    </button>
+                                    <button 
+                                        onClick={apiRefClick}
+                                        className="block w-full text-left"
+                                    >
+                                        <Card
+                                            title="API Reference"
+                                            description="Explore our comprehensive API documentation"
+                                            icon={ExternalLink}
+                                        />
+                                    </button>
+                                </div>
+                            </Section>
+                        </>
+                    )
+                },
+                "installation": {
+                    title: "Installation",
+                    content: (
+                        <>
+                            <Section title="Installation Guide" description="Follow these steps to set up AuthManager locally.">
+                                <h3 className="text-xl font-semibold mb-4 text-white/90">1. Clone the Repository</h3>
                                 <CodeBlock language="bash">
-                                    https://api.authmanager.xyz/v1
+{`git clone https://github.com/AuthsManager/AuthManager-Src.git
+cd AuthManager-Src`}
+                                </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">2. Install Dependencies</h3>
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    Install the required packages for both the frontend and backend:
+                                </p>
+                                <CodeBlock language="bash">
+{`# Install Frontend Dependencies
+cd Front
+npm install
+
+# Install Backend Dependencies
+cd ../Back
+npm install`}
+                                </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">3. Configure Environment</h3>
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    Create a .env file in the Back directory with your MongoDB connection URL:
+                                </p>
+                                <CodeBlock language="bash">
+{`# Back/.env
+MONGO_URL=your_mongodb_connection_url`}
+                                </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">4. Start the Services</h3>
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    Run both the frontend and backend services:
+                                </p>
+                                <CodeBlock language="bash">
+{`# Start Frontend (in Front directory)
+npm run dev
+
+# Start Backend (in Back directory)
+node index.js`}
                                 </CodeBlock>
                             </Section>
-
-                            <Section title="Authentication" description="Secure your API requests with authentication tokens." noGradient>
+                        </>
+                    )
+                },
+                "api-keys": {
+                    title: "Getting Your API Key",
+                    content: (
+                        <>
+                            <Section title="API Keys" description="Learn how to obtain and manage your API keys.">
+                                <h3 className="text-xl font-semibold mb-4 text-white/90">Obtaining Your API Key</h3>
                                 <p className="text-white/80 leading-relaxed mb-4">
-                                    All API requests require authentication using a Bearer token. Include the token in the Authorization header:
+                                    To get your API key, follow these steps:
+                                </p>
+                                <ol className="list-decimal list-inside space-y-4 text-white/80 mb-6">
+                                    <li>Log in to your AuthManager dashboard</li>
+                                    <li>Navigate to the "Apps" section</li>
+                                    <li>Create a new application or select an existing one</li>
+                                    <li>Your API key will be displayed in the application details</li>
+                                </ol>
+                                
+                                <div className="bg-white/5 rounded-lg p-4 mb-6">
+                                    <h4 className="text-lg font-semibold mb-2 text-white/90">Security Best Practices</h4>
+                                    <ul className="list-disc list-inside space-y-2 text-white/80">
+                                        <li>Never share your API key publicly</li>
+                                        <li>Store your API key securely in environment variables</li>
+                                        <li>Rotate your API keys periodically for enhanced security</li>
+                                        <li>Use different API keys for development and production environments</li>
+                                    </ul>
+                                </div>
+                            </Section>
+                        </>
+                    )
+                },
+                "best-practices": {
+                    title: "Best Practices",
+                    content: (
+                        <>
+                            <Section title="Best Practices" description="Recommended practices for using AuthManager effectively.">
+                                <h3 className="text-xl font-semibold mb-4 text-white/90">Error Handling</h3>
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    Implement proper error handling to manage API responses:
                                 </p>
                                 <CodeBlock language="javascript">
-{`fetch('https://api.authmanager.xyz/v1/apps', {
-    headers: {
-        'Authorization': 'Bearer YOUR_TOKEN_HERE'
+{`try {
+    const response = await fetch('https://api.authmanager.xyz/v1/apps', {
+        headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+    });
+    
+    if (!response.ok) {
+        throw new Error('API request failed');
     }
-});`}
+    
+    const data = await response.json();
+} catch (error) {
+    console.error('Error:', error.message);
+    // Handle error appropriately
+}`}
                                 </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">Rate Limiting</h3>
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    Be mindful of API rate limits and implement appropriate handling:
+                                </p>
+                                <ul className="list-disc list-inside space-y-2 text-white/80 mb-6">
+                                    <li>Implement exponential backoff for retries</li>
+                                    <li>Cache responses when appropriate</li>
+                                    <li>Monitor your API usage</li>
+                                </ul>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">Security</h3>
+                                <p className="text-white/80 leading-relaxed mb-4">
+                                    Follow these security guidelines:
+                                </p>
+                                <ul className="list-disc list-inside space-y-2 text-white/80 mb-6">
+                                    <li>Use HTTPS for all API requests</li>
+                                    <li>Implement proper session management</li>
+                                    <li>Validate user input</li>
+                                    <li>Keep your dependencies updated</li>
+                                </ul>
                             </Section>
                         </>
                     )
@@ -254,6 +380,58 @@ export default function Docs() {
         }
     ]
 }`}
+                                </CodeBlock>
+                            </Section>
+                        </>
+                    )
+                },
+                "licenses": {
+                    title: "License Management",
+                    content: (
+                        <>
+                            <Section title="Licenses API" description="Create and manage licenses for your applications." noGradient>
+                                <h3 className="text-xl font-semibold mb-4 text-white/90">Create License</h3>
+                                <CodeBlock language="javascript">
+{`// POST /apps/{app_id}/licenses
+{
+    "duration": "30d",  // Duration format: Xd (days), Xw (weeks), Xm (months), Xy (years)
+    "type": "premium",  // License type (e.g., basic, premium, enterprise)
+    "maxUses": 1       // Maximum number of activations allowed
+}`}
+                                </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">Verify License</h3>
+                                <CodeBlock language="javascript">
+{`// POST /apps/{app_id}/licenses/verify
+{
+    "licenseKey": "LICENSE_KEY_HERE"
+}`}
+                                </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">List Licenses</h3>
+                                <CodeBlock language="javascript">
+{`// GET /apps/{app_id}/licenses
+// Response
+{
+    "licenses": [
+        {
+            "id": "license_123",
+            "key": "XXXX-XXXX-XXXX-XXXX",
+            "type": "premium",
+            "status": "active",
+            "created_at": "2024-02-20T12:00:00Z",
+            "expires_at": "2024-03-20T12:00:00Z",
+            "uses": 0,
+            "maxUses": 1
+        }
+    ]
+}`}
+                                </CodeBlock>
+
+                                <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">Revoke License</h3>
+                                <CodeBlock language="javascript">
+{`// DELETE /apps/{app_id}/licenses/{license_id}
+// Response: 204 No Content`}
                                 </CodeBlock>
                             </Section>
                         </>
