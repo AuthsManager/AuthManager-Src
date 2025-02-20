@@ -22,7 +22,7 @@ const PricingCard = ({ title, price, features, popular, index }) => {
       <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
       <Card className={`relative p-6 h-full border bg-background/40 backdrop-blur-md ${
         popular 
-          ? 'border-primary/50 relative hover:border-primary shadow-lg shadow-primary/20' 
+          ? 'border-primary/50 relative hover:border-primary shadow-[0_0_50px_20px_rgba(37,99,235,0.25)] shadow-primary/20' 
           : 'border-border/30 hover:border-border/60 shadow-lg shadow-background/5'
       } transition-all duration-300 hover:-translate-y-1`}>
         {popular && (
