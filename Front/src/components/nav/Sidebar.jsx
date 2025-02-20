@@ -127,6 +127,12 @@ export default function Sidebar({ isOpen, onClose }) {
                             >
                                 Manage Apps
                             </NavLink>
+                            <NavLink 
+                                to={`/${location.pathname.includes('admin') ? 'admin' : 'dash'}/settings`} 
+                                icon={Settings}
+                            >
+                                Settings
+                            </NavLink>
                         </div>
 
                         <div className="p-4 border-t border-white/5">
