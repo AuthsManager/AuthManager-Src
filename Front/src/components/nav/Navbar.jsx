@@ -25,6 +25,9 @@ export default function Navbar() {
                             <a href="#pricing" className="text-white hover:bg-[#2563eb]/20 px-3 py-2 rounded-md text-sm font-medium">
                                 Pricing
                             </a>
+                            <a href="/docs" className="text-white hover:bg-[#2563eb]/20 px-3 py-2 rounded-md text-sm font-medium">
+                                Documentation
+                            </a>
                             <Link
                                 to="/dash/dashboard"
                                 className="ml-4 bg-[#2563eb] hover:bg-[#2563eb]/90 px-4 py-2 rounded-md text-white"
@@ -67,6 +70,13 @@ export default function Navbar() {
                             className="text-white hover:bg-[#2563eb]/20 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
                         >
                             Pricing
+                        </a>
+                        <a
+                            href="/docs"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="text-white hover:bg-[#2563eb]/20 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                        >
+                            Documentation
                         </a>
                         <Link
                             to="/dash/dashboard"

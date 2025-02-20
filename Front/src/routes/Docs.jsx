@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronRight, Search, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -65,7 +65,7 @@ const Card = ({ title, description, icon: Icon }) => (
     </div>
 );
 
-const Section = ({ title, description, children, noGradient }) => (
+const Section = ({ title, description, children, noGradient = false }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -84,22 +84,35 @@ const Section = ({ title, description, children, noGradient }) => (
     </motion.div>
 );
 
-const SearchBar = () => (
-    <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-        <input
-            type="text"
-            placeholder="Search documentation..."
-            className="w-full h-8 pl-9 pr-4 py-1 bg-white/5 border border-white/10 rounded-lg text-sm text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary/50"
-        />
-    </div>
-);
+const SearchBar = ({ onSearch }) => {
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        onSearch(value);
+    };
+
+    return (
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearch}
+                placeholder="Search documentation..."
+                className="w-full h-8 pl-9 pr-4 py-1 bg-white/5 border border-white/10 rounded-lg text-sm text-white/80 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+        </div>
+    );
+};
 
 export default function Docs() {
     const [activeSection, setActiveSection] = useState("getting-started");
     const [expandedSections, setExpandedSections] = useState(["getting-started"]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const checkMobile = () => {
@@ -114,6 +127,15 @@ export default function Docs() {
         
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    const handleSearch = (value) => {
+        setSearchTerm(value.toLowerCase());
+        if (value) {
+            setExpandedSections(Object.keys(sections));
+        } else {
+            setExpandedSections(["getting-started"]);
+        }
+    };
 
     const apiRefClick = () => {
         setActiveSection('api-reference.apps');
@@ -441,6 +463,45 @@ node index.js`}
         }
     };
 
+    const filteredSections = useMemo(() => {
+        if (!searchTerm) return sections;
+
+        const filtered = {};
+        Object.entries(sections).forEach(([sectionKey, section]) => {
+            const matchingSubsections = {};
+            Object.entries(section.subsections).forEach(([subsectionKey, subsection]) => {
+                const getTextContent = (element) => {
+                    if (!element || typeof element !== 'object') return '';
+                    if (Array.isArray(element)) {
+                        return element.map(getTextContent).join(' ');
+                    }
+                    if (element.props) {
+                        const { children, description, title } = element.props;
+                        return `${title || ''} ${description || ''} ${getTextContent(children)}`;
+                    }
+                    return '';
+                };
+
+                const contentText = getTextContent(subsection.content);
+                const matchesTitle = subsection.title.toLowerCase().includes(searchTerm);
+                const matchesContent = contentText.toLowerCase().includes(searchTerm);
+                
+                if (matchesTitle || matchesContent) {
+                    matchingSubsections[subsectionKey] = subsection;
+                }
+            });
+
+            if (Object.keys(matchingSubsections).length > 0 || section.title.toLowerCase().includes(searchTerm)) {
+                filtered[sectionKey] = {
+                    ...section,
+                    subsections: matchingSubsections
+                };
+            }
+        });
+
+        return filtered;
+    }, [searchTerm, sections]);
+
     const renderContent = () => {
         const [sectionKey, subsectionKey] = activeSection.split('.');
         const section = sections[sectionKey];
@@ -481,15 +542,15 @@ node index.js`}
                 >
                     <div className="h-full overflow-y-auto p-4 pt-16 md:pt-4">
                         <h1 className="text-xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary">
-                            API Documentation
+                            Documentation
                         </h1>
 
                         <div className="mb-6">
-                            <SearchBar />
+                            <SearchBar onSearch={handleSearch} />
                         </div>
 
                         <nav className="space-y-1">
-                            {Object.entries(sections).map(([sectionKey, section]) => (
+                            {Object.entries(filteredSections).map(([sectionKey, section]) => (
                                 <div key={sectionKey}>
                                     <button
                                         onClick={() => toggleSection(sectionKey)}
