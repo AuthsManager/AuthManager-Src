@@ -3,8 +3,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronRight, Search, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import bash from 'highlight.js/lib/languages/bash';
+import 'highlight.js/styles/tokyo-night-dark.css';
+
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('bash', bash);
 
 const CodeBlock = ({ language, children }) => {
+    const [highlighted, setHighlighted] = useState('');
+
+    useEffect(() => {
+        if (children) {
+            const highlighted = hljs.highlight(children, { language }).value;
+            setHighlighted(highlighted);
+        }
+    }, [children, language]);
+
     const copyToClipboard = () => {
         navigator.clipboard.writeText(children);
         toast.success("Code copied to clipboard!");
@@ -26,7 +44,10 @@ const CodeBlock = ({ language, children }) => {
                 </button>
             </div>
             <pre className="mt-12 p-4 overflow-x-auto">
-                <code className="text-sm text-white/90 font-mono">{children}</code>
+                <code 
+                    className={`text-sm font-mono`}
+                    dangerouslySetInnerHTML={{ __html: highlighted }}
+                />
             </pre>
         </div>
     );
