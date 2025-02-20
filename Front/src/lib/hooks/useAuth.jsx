@@ -5,8 +5,7 @@ import { BASE_API, API_VERSION } from "../../config.json";
 import useSWR from 'swr';
 import Loader from "@/components/Loader";
 import Login from "../../routes/auth/Login";
-import Sidebar from "@/components/nav/sidebar";
-import Header from "@/components/nav/header";
+import Layout from "@/components/ui/layout";
 
 export function useAuth() {
 	return useContext(UserContext);
@@ -47,9 +46,10 @@ export function AuthWrapper({ children }) {
 	}
 
 	// if (location.pathname.startsWith('/admin') && user && user.subTier !== 2) return <Login />;
-  
+    
 	return user && user.id ? <Layout>{children}</Layout> : <Login />;
 }
+
 
 // export function AuthWrapper({ children }) {
 // 	const [isLoading, setIsLoading] = useState(false);
@@ -83,13 +83,3 @@ export function AuthWrapper({ children }) {
 
 // 	return user ? <Layout>{children}</Layout> : <Login />;
 // }
-
-function Layout({ children }) {
-	return <div className="flex h-screen overflow-hidden">
-		<Sidebar />
-		<div className="flex-grow flex flex-col gap-8 px-6 py-6 bg-background text-white overflow-y-auto md:px-10 overflow-hidden">
-            <Header />
-            {children}
-        </div>
-	</div>
-}
