@@ -6,15 +6,27 @@ import logo from "/logo.png";
 
 export default function Sidebar({ isOpen, onClose }) {
     const [opened, setOpened] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const { user } = useAuth();
     const location = useLocation();
-    const isMobile = window.innerWidth < 768;
 
     useEffect(() => {
-        if (isMobile) {
-            setOpened(false);
-        }
-    }, [isMobile]);
+        const manageResize = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile) {
+                setOpened(false);
+            } else {
+                setOpened(true);
+            }
+        };
+
+        manageResize();
+
+        window.addEventListener('resize', manageResize);
+
+        return () => window.removeEventListener('resize', manageResize);
+    }, []);
 
     function logout() {
         localStorage.removeItem('token');

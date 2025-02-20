@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/lib/hooks/useAuth";
 import Users from "./Users";
 import Licenses from "./Licenses";
@@ -7,6 +7,7 @@ import Apps from "./Apps";
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     
     useEffect(() => {
@@ -14,10 +15,10 @@ export default function Dashboard() {
     }, [user]);
 
     return (
-        <>
+        <div className="space-y-8">
             <Users />
             <Licenses />
             <Apps />
-        </>
+        </div>
     );
 }
