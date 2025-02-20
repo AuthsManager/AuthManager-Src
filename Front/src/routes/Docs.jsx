@@ -1,28 +1,36 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronRight, Search, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
-const CodeBlock = ({ language, children, filename }) => (
-    <div className="relative mt-4 rounded-lg overflow-hidden bg-[#1a1b26] border border-white/10">
-        {filename && (
-            <div className="absolute top-0 right-0 px-4 py-2 text-sm text-white/60 border-l border-b border-white/10 rounded-bl-lg bg-white/5">
-                {filename}
+const CodeBlock = ({ language, children }) => {
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(children);
+        toast.success("Code copied to clipboard!");
+    };
+
+    return (
+        <div className="relative mt-4 rounded-lg overflow-hidden bg-[#1a1b26] border border-white/10">
+            <div className="absolute top-0 left-0 right-0 px-4 py-2 text-sm text-white/60 border-b border-white/10 flex items-center justify-between">
+                <span>{language}</span>
+                <button 
+                    onClick={copyToClipboard}
+                    className="hover:text-white/80 transition-colors ml-auto" 
+                    aria-label="Copy code"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                    </svg>
+                </button>
             </div>
-        )}
-        <div className="absolute top-0 left-0 w-full px-4 py-2 text-sm text-white/60 border-b border-white/10 flex items-center">
-            <span className="flex-1">{language}</span>
-            <button className="hover:text-white/80 transition-colors" aria-label="Copy code">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                </svg>
-            </button>
+            <pre className="mt-12 p-4 overflow-x-auto">
+                <code className="text-sm text-white/90 font-mono">{children}</code>
+            </pre>
         </div>
-        <pre className="mt-12 p-4 overflow-x-auto">
-            <code className="text-sm text-white/90 font-mono">{children}</code>
-        </pre>
-    </div>
-);
+    );
+};
 
 const Card = ({ title, description, icon: Icon }) => (
     <div className="p-6 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
@@ -36,7 +44,7 @@ const Card = ({ title, description, icon: Icon }) => (
     </div>
 );
 
-const Section = ({ title, description, children }) => (
+const Section = ({ title, description, children, noGradient }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -44,7 +52,7 @@ const Section = ({ title, description, children }) => (
         className="mb-12"
     >
         <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white">
+            <h2 className={`text-2xl font-bold mb-2 ${noGradient ? 'text-white' : 'bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white'}`}>
                 {title}
             </h2>
             {description && (
@@ -67,7 +75,7 @@ const SearchBar = () => (
 );
 
 export default function Docs() {
-    const [activeSection, setActiveSection] = useState("introduction");
+    const [activeSection, setActiveSection] = useState("getting-started");
     const [expandedSections, setExpandedSections] = useState(["getting-started"]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -85,6 +93,16 @@ export default function Docs() {
         
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    const manageButtonClick = () => {
+        setActiveSection('api-reference.apps');
+        if (!expandedSections.includes('api-reference')) {
+            setExpandedSections(prev => [...prev, 'api-reference']);
+        }
+        if (isMobile) {
+            setIsSidebarOpen(false);
+        }
+    };
 
     const sections = {
         "getting-started": {
@@ -104,24 +122,29 @@ export default function Docs() {
                                     description="Get started with AuthManager in minutes with our simple setup process."
                                     icon={ChevronRight}
                                 />
-                                <Card
-                                    title="API Reference"
-                                    description="Explore our complete API reference with examples and use cases."
-                                    icon={ExternalLink}
-                                />
+                                <button 
+                                    onClick={manageButtonClick}
+                                    className="block w-full text-left"
+                                >
+                                    <Card
+                                        title="API Reference"
+                                        description="Explore our complete API reference with examples and use cases."
+                                        icon={ExternalLink}
+                                    />
+                                </button>
                             </div>
 
-                            <Section title="Base URL" description="All API requests should be made to the following base URL:">
+                            <Section title="Base URL" description="All API requests should be made to the following base URL:" noGradient>
                                 <CodeBlock language="bash">
                                     https://api.authmanager.xyz/v1
                                 </CodeBlock>
                             </Section>
 
-                            <Section title="Authentication" description="Secure your API requests with authentication tokens.">
+                            <Section title="Authentication" description="Secure your API requests with authentication tokens." noGradient>
                                 <p className="text-white/80 leading-relaxed mb-4">
                                     All API requests require authentication using a Bearer token. Include the token in the Authorization header:
                                 </p>
-                                <CodeBlock language="javascript" filename="example.js">
+                                <CodeBlock language="javascript">
 {`fetch('https://api.authmanager.xyz/v1/apps', {
     headers: {
         'Authorization': 'Bearer YOUR_TOKEN_HERE'
@@ -141,9 +164,9 @@ export default function Docs() {
                     title: "Managing Apps",
                     content: (
                         <>
-                            <Section title="Apps API" description="Create and manage your applications through our Apps API.">
+                            <Section title="Apps API" description="Create and manage your applications through our Apps API." noGradient>
                                 <h3 className="text-xl font-semibold mb-4 text-white/90">Create an App</h3>
-                                <CodeBlock language="javascript" filename="create-app.js">
+                                <CodeBlock language="javascript">
 {`// POST /apps
 {
     "name": "My Application"
@@ -151,7 +174,7 @@ export default function Docs() {
                                 </CodeBlock>
 
                                 <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">List Apps</h3>
-                                <CodeBlock language="javascript" filename="list-apps.js">
+                                <CodeBlock language="javascript">
 {`// GET /apps
 // Response
 {
@@ -172,9 +195,9 @@ export default function Docs() {
                     title: "User Management",
                     content: (
                         <>
-                            <Section title="Users API" description="Manage users and their access to your applications.">
+                            <Section title="Users API" description="Manage users and their access to your applications." noGradient>
                                 <h3 className="text-xl font-semibold mb-4 text-white/90">Create User</h3>
-                                <CodeBlock language="javascript" filename="create-user.js">
+                                <CodeBlock language="javascript">
 {`// POST /apps/{app_id}/users
 {
     "email": "user@example.com",
@@ -183,7 +206,7 @@ export default function Docs() {
                                 </CodeBlock>
 
                                 <h3 className="text-xl font-semibold mt-8 mb-4 text-white/90">List Users</h3>
-                                <CodeBlock language="javascript" filename="list-users.js">
+                                <CodeBlock language="javascript">
 {`// GET /apps/{app_id}/users
 // Response
 {
@@ -233,6 +256,8 @@ export default function Docs() {
         <div className="relative min-h-screen bg-background overflow-hidden">
             <div className="absolute inset-0 bg-[#0a0b14]" />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent" />
+            
+            <Toaster />
             
             {isMobile && (
                 <button
