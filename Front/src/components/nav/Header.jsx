@@ -1,8 +1,8 @@
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { User } from "lucide-react";
+import { User, Menu } from "lucide-react";
 
-export default function Header() {
+export default function Header({ toggleSidebar }) {
     const { user } = useAuth();
     const location = useLocation();
 
@@ -25,10 +25,18 @@ export default function Header() {
         <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50"></div>
             <div className="relative backdrop-blur-sm bg-background/30 border-b border-white/5">
-                <div className="px-6 h-20 flex items-center justify-between">
-                    <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-                        {getName()}
-                    </h1>
+                <div className="px-4 sm:px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={toggleSidebar}
+                            className="p-2 rounded-lg hover:bg-white/5 transition-colors md:hidden"
+                        >
+                            <Menu className="w-5 h-5 text-white/70" />
+                        </button>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent truncate">
+                            {getName()}
+                        </h1>
+                    </div>
                     <div className="flex items-center gap-3">
                         <p className="hidden md:block text-white/70">Welcome back,&nbsp;
                             <span className="text-white font-medium">{user.username}</span>
