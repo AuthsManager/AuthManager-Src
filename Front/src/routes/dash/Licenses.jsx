@@ -129,8 +129,8 @@ export default function Licenses() {
     }
 
     return (
-        <div className="bg-[#201f2b] py-4 px-6 rounded-lg">
-            <h2 className="text-lg md:text-2xl font-bold mb-4">License management</h2>
+        <div className="bg-[#0A1323] py-4 px-6 rounded-lg border border-[#1B2B4B]">
+            <h2 className="text-xl md:text-2xl font-bold mb-4">License management</h2>
             <AlertDialog>
                 <AlertDialogTrigger><Button className="mb-4">Create License</Button></AlertDialogTrigger>
                 <AlertDialogContent>

@@ -97,7 +97,7 @@ export default function Users() {
     }
 
     return (
-        <div className="bg-[#201f2b] py-4 px-6 rounded-lg">
+        <div className="bg-[#0A1323] py-4 px-6 rounded-lg border border-[#1B2B4B]">
             <h2 className="text-xl md:text-2xl font-bold mb-4">User management</h2>
             <AlertDialog>
                 <AlertDialogTrigger><Button className="mb-4">Create User</Button></AlertDialogTrigger>

@@ -23,6 +23,27 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const ActionButton = ({ onClick, icon: Icon, color = "red", tooltip }) => (
+    <TooltipProvider delayDuration={100}>
+        <Tooltip>
+            <TooltipTrigger>
+                <div 
+                    onClick={onClick} 
+                    className={`flex items-center justify-center p-2 rounded-lg transition-colors duration-200
+                        ${color === "red" 
+                            ? "bg-[#1B2B4B] text-red-400 hover:bg-red-500/20" 
+                            : "bg-[#1B2B4B] text-blue-400 hover:bg-blue-500/20"}`}
+                >
+                    <Icon className="w-4 h-4" />
+                </div>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{tooltip}</p>
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
+);
+
 const UserManagement = ({ users, deleteUser }) => {
     const { user } = useAuth();
     const columns = ["ID", "Username", "Linked App", "Actions"];
@@ -33,30 +54,11 @@ const UserManagement = ({ users, deleteUser }) => {
         linkedApp: user.applications.find(app => app.id === appId)?.name || 'Unknown',
         action: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
-                <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                        <TooltipTrigger>
-                            <div className="flex items-center justify-center px-2 py-1 bg-red-500 rounded-md cursor-pointer transition-colors hover:bg-red-600"><Ban width={18} /></div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Ban</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                        <TooltipTrigger>
-                            <div onClick={() => deleteUser(id)} className="flex items-center justify-center px-2 py-1 bg-red-500 rounded-md cursor-pointer transition-colors hover:bg-red-600"><Trash2 width={18} /></div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Delete</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <ActionButton icon={Ban} tooltip="Ban" onClick={() => {}} />
+                <ActionButton icon={Trash2} tooltip="Delete" onClick={() => deleteUser(id)} />
             </div>
         )
-        }),
-    );
+    }));
 
     return <TableManagement columns={columns} data={data} />;
 };
@@ -76,30 +78,19 @@ const LicenseManagement = ({ licenses, renewLicense, deleteLicense }) => {
         id,
         name,
         expiration: moment(expiration).format('DD/MM/YYYY'),
-        status: used ? 'Used' : Date.now() < expiration ? 'Active' : 'Expired',
+        status: (
+            <span className={`px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B]
+                ${used ? 'text-yellow-400' :
+                Date.now() < expiration ? 'text-green-400' :
+                'text-red-400'}`}>
+                {used ? 'Used' : Date.now() < expiration ? 'Active' : 'Expired'}
+            </span>
+        ),
         linkedApp: user.applications.find(app => app.id === appId)?.name || 'Unknown',
         actions: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
-                <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                        <TooltipTrigger>
-                            <div onClick={() => renewLicense(id)} className="flex items-center justify-center px-2 py-1 bg-blue-500 rounded-md cursor-pointer transition-colors hover:bg-blue-600"><RefreshCw width={18} /></div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Renew</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                        <TooltipTrigger>
-                            <div onClick={() => deleteLicense(id)} className="flex items-center justify-center px-2 py-1 bg-red-500 rounded-md cursor-pointer transition-colors hover:bg-red-600"><Trash2 width={18} /></div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Delete</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <ActionButton icon={RefreshCw} color="blue" tooltip="Renew" onClick={() => renewLicense(id)} />
+                <ActionButton icon={Trash2} tooltip="Delete" onClick={() => deleteLicense(id)} />
             </div>
         )
     }));
@@ -129,7 +120,11 @@ const AppManagement = ({ apps, renameApp, deleteApp }) => {
             <TooltipProvider delayDuration={100}>
                 <Tooltip>
                     <TooltipTrigger>
-                        <span onClick={handleClick} className={`cursor-pointer relative ${copied ? 'blur-none' : 'blur-sm'} transition duration-300`}>
+                        <span 
+                            onClick={handleClick} 
+                            className={`cursor-pointer font-mono text-sm px-3 py-1 rounded-md bg-[#1B2B4B]
+                                ${copied ? 'blur-none' : 'blur-sm'} transition duration-300`}
+                        >
                             {secret}
                         </span>
                     </TooltipTrigger>
@@ -151,17 +146,10 @@ const AppManagement = ({ apps, renameApp, deleteApp }) => {
         actions: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
                 <AlertDialog>
-                    <AlertDialogTrigger>
-                        <TooltipProvider delayDuration={100}>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <div className="flex items-center justify-center px-2 py-1 bg-blue-500 rounded-md cursor-pointer transition-colors hover:bg-blue-600"><Pencil width={18} /></div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Rename</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                    <AlertDialogTrigger asChild>
+                        <div>
+                            <ActionButton icon={Pencil} color="blue" tooltip="Rename" />
+                        </div>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader className="mb-2">
@@ -186,16 +174,7 @@ const AppManagement = ({ apps, renameApp, deleteApp }) => {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                        <TooltipTrigger>
-                            <div onClick={() => deleteApp(app.id)} className="flex items-center justify-center px-2 py-1 bg-red-500 rounded-md cursor-pointer transition-colors hover:bg-red-600"><Trash2 width={18} /></div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Delete</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <ActionButton icon={Trash2} tooltip="Delete" onClick={() => deleteApp(app.id)} />
             </div>
         )
     }));
