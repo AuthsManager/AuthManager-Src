@@ -152,8 +152,7 @@ export default function Hero({ badge = "AuthManager", title1 = "Unleashing", tit
 
           <motion.div custom={3} variants={fadeUpVariants} initial="hidden" animate="visible">
             <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-              Start gaining the traction you've always wanted with our next-level templates and designs. Crafted to help
-              you tell your story.
+              Secure authentication system with license management, access control, and user verification features.
             </p>
           </motion.div>
 
@@ -164,12 +163,12 @@ export default function Hero({ badge = "AuthManager", title1 = "Unleashing", tit
             custom={3}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <button className="px-8 py-3 text-white bg-[#2563eb] rounded-lg hover:bg-[#2563eb]/90 transition-colors">
+            <a href="/dash/dashboard" className="px-8 py-3 text-white bg-[#2563eb] rounded-lg hover:bg-[#2563eb]/90 transition-colors">
               Get Started
-            </button>
-            <button className="px-8 py-3 text-white bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
+            </a>
+            <a href="/docs" className="px-8 py-3 text-white bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
               Learn More
-            </button>
+            </a>
           </motion.div>
         </div>
       </div>
