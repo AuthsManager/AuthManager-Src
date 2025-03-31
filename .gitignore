@@ -27,4 +27,4 @@ Apps
 *.sln
 *.sw?
 src/icons/discord.png
-Back/.env
+.env
