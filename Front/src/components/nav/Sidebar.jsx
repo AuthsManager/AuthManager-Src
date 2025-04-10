@@ -30,7 +30,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
     function logout() {
         localStorage.removeItem('token');
-        window.location.replace('/');
+        window.location.replace('/auth/login');
     }
 
     const NavLink = ({ to, icon: Icon, children }) => {

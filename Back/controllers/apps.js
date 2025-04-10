@@ -9,7 +9,7 @@ const createApp = async (req, res) => {
     if (!name) return res.status(400).json({ message: 'App name is required.' });
 
     const apps = await App.find({ ownerId: req.user.id }) || [];
-    if (req.user.subTier === 0 && apps.length >= 1) return res.status(400).json({ message: 'Your subscription tier limits you to only one application.' });
+    if (req.user.subscription.plan === 'Starter' && apps.length >= 1) return res.status(400).json({ message: 'Your subscription tier limits you to only one application.' });
 
     const nameRegex = /^[a-zA-Z0-9-]*$/;
     if (!nameRegex.test(name)) return res.status(400).json({ message: 'The provided app name is invalid.' });

@@ -34,10 +34,12 @@ const subusersRoutes = require('./routes/subusers');
 const usersRoutes = require('./routes/users');
 const appsRoutes = require('./routes/apps');
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 app.use(base_route + '/subusers', subusersRoutes);
 app.use(base_route + '/users', usersRoutes);
 app.use(base_route + '/apps', appsRoutes);
 app.use(base_route + '/auth', authRoutes);
+app.use(base_route + '/admin', adminRoutes);
 
 const publicRoutes = require('./routes/public/routes');
 app.use('/auth', publicRoutes);

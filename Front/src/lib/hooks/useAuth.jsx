@@ -45,7 +45,7 @@ export function AuthWrapper({ children }) {
 	  	return <Loader />;
 	}
 
-	// if (location.pathname.startsWith('/admin') && user && user.subTier !== 2) return <Login />;
+	if (location.pathname.startsWith('/admin') && user && !['Admin', 'Founder'].includes(user.subscription.plan)) return <Login />;
     
 	return user && user.id ? <Layout>{children}</Layout> : <Login />;
 }

@@ -10,7 +10,7 @@ module.exports = async (req, res, next) => {
     const user = await User.findOne({ token });
     if (!user) return res.status(401).json({ message: 'Unauthorized.' });
 
-    // if (type === 'Admin' && user.subTier !== 2) return res.status(401).json({ message: 'Unauthorized.' });
+    if (req.url.startsWith('/api/v1/admin') && (type !== 'Admin' || !['Admin', 'Founder'].includes(user.subscription.plan))) return res.status(401).json({ message: 'Unauthorized.' });
 
     req.user = user.toJSON();
     req.user.isAdmin = type === 'Admin';

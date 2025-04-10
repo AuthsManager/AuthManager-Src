@@ -6,7 +6,11 @@ const userSchema = new Schema({
     email: String,
     password: String,
     token: String,
-    subTier: { type: Number, default: 0 }
+    created_at: Number,
+    subscription: {
+        plan: { type: String, default: 'Starter' },
+        expires: { type: Number, default: 0 }
+    }
 });
 
 module.exports = model('user', userSchema);
