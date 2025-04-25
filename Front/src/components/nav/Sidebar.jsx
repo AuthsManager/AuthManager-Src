@@ -72,9 +72,9 @@ export default function Sidebar({ isOpen, onClose }) {
                     <div className="flex flex-col h-full">
                         <div className={`h-20 flex items-center justify-between px-4 sm:px-6 border-b border-white/5`}>
                             {(opened || isMobile) && (
-                                <h1 className="text-xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+                                <Link to="/" className="text-xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent no-underline hover:opacity-90 transition-opacity">
                                     AuthManager
-                                </h1>
+                                </Link>
                             )}
                             {!isMobile ? (
                                 <button
