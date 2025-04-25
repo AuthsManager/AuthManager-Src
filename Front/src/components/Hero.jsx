@@ -138,7 +138,8 @@ export default function Hero({ badge = "AuthManager", title1 = "Unleashing", tit
               </span>
               <br />
               <span 
-                className="font-['Pacifico'] bg-clip-text text-transparent bg-gradient-to-r from-[#2563eb] via-white/90 to-[#2563eb]/80"
+                className="font-['Pacifico'] bg-clip-text text-transparent bg-gradient-to-r from-[#2563eb] via-white/90 to-[#2563eb]/80 tracking-wide px-1"
+                style={{ letterSpacing: '0.02em', paddingRight: '0.15em' }}
               >
                 {title2}
               </span>
