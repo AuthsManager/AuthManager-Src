@@ -30,7 +30,32 @@ const createApp = async (req, res) => {
     return res.status(201).json(app);
 };
 
-const editApp = async (req, res) => {
+const getApps = async (req, res) => {
+    let apps;
+    
+    if (req.user.isAdmin) {
+        apps = await App.find({});
+        const appsWithOwnerInfo = await Promise.all(apps.map(async (app) => {
+            const owner = await User.findOne({ id: app.ownerId });
+            return {
+                ...app.toJSON(),
+                ownerUsername: owner ? owner.username : null
+            };
+        }));
+        apps = appsWithOwnerInfo;
+    } else {
+        apps = await App.find({ ownerId: req.user.id });
+    }
+
+    const formattedApps = apps.map(app => {
+        const { _id, __v, ...rest } = app;
+        return rest;
+    });
+
+    return res.status(200).json(formattedApps);
+};
+
+const renameApp = async (req, res) => {
     const { appId } = req.params;
     const { newName } = req.body;
 
@@ -68,6 +93,7 @@ const deleteApp = async (req, res) => {
   
 module.exports = {
     createApp,
-    editApp,
+    getApps,
+    renameApp,
     deleteApp
 };
