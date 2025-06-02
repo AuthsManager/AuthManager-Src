@@ -28,3 +28,4 @@ Apps
 *.sw?
 src/icons/discord.png
 .env
+Back/.env
