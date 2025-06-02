@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom';
 
 export default function Layout({ children }) {
   const location = useLocation();
-  const isDashboard = location.pathname.startsWith('/dash');
+  const isDashboard = location.pathname.startsWith('/dash') || location.pathname.startsWith('/admin');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
