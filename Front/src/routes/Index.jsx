@@ -2,6 +2,7 @@ import Hero from "@/components/Hero";
 import Pricing from "@/components/cards/pricing";
 import Features from "@/components/cards/Features";
 import Navbar from "@/components/nav/navbar";
+import Footer from "@/components/Footer";
 import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
 
 export default function Home() {
@@ -25,6 +26,7 @@ export default function Home() {
                 <div id="pricing">
                     <Pricing />
                 </div>
+                <Footer />
             </div>
         </div>
     );
