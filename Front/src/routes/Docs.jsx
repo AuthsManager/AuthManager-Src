@@ -541,11 +541,11 @@ node index.js`}
                     `}
                 >
                     <div className="h-full overflow-y-auto p-4 pt-16 md:pt-4">
-                        <h1 className="text-xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary">
+                        <a href="/" className="text-xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary">
                             Documentation
-                        </h1>
+                        </a>
 
-                        <div className="mb-6">
+                        <div className="my-6">
                             <SearchBar onSearch={handleSearch} />
                         </div>
 
