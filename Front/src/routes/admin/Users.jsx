@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Ban, CheckCircle, Search, Users } from "lucide-react";
+import { Ban, CheckCircle, Search, Users, X } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -256,7 +256,7 @@ export default function AdminUsers() {
 }
 
 function SubUsersDialog({ userId, username, fetcher }) {
-    const { data: subUsers } = useSwr(
+    const { data: subUsers, mutate } = useSwr(
         userId ? `${BASE_API}/v${API_VERSION}/subusers?ownerId=${userId}` : null,
         fetcher,
         { 
@@ -265,6 +265,25 @@ function SubUsersDialog({ userId, username, fetcher }) {
             revalidateOnReconnect: false 
         }
     );
+
+    const deleteSubUser = async (subUserId) => {
+        try {
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/subusers/${subUserId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Admin ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                mutate(); 
+            } else {
+                console.error('Failed to delete sub-user');
+            }
+        } catch (error) {
+            console.error('Error deleting sub-user:', error);
+        }
+    };
 
     return (
         <Dialog>
@@ -279,7 +298,7 @@ function SubUsersDialog({ userId, username, fetcher }) {
             </DialogTrigger>
             <DialogContent className="max-w-2xl bg-[#0A1323] border-[#1B2B4B]">
                 <DialogHeader>
-                    <DialogTitle className="text-white">Sub Users de {username}</DialogTitle>
+                    <DialogTitle className="text-white">Sub Users of {username}</DialogTitle>
                     <DialogDescription className="text-gray-400">
                     List of sub users created by this user
                     </DialogDescription>
@@ -293,10 +312,40 @@ function SubUsersDialog({ userId, username, fetcher }) {
                                         <p className="font-medium text-white mb-1">{subUser.username}</p>
                                         <p className="text-sm text-gray-400">App ID: <span className="font-mono text-blue-400">{subUser.appId}</span></p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="flex items-center gap-3">
                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">
                                             Active
                                         </span>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="text-red-400 hover:text-red-500 bg-red-900/20 hover:bg-red-900/30 h-8 w-8"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent className="bg-[#0A1323] border-[#1B2B4B]">
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle className="text-white">Delete sub user</AlertDialogTitle>
+                                                    <AlertDialogDescription className="text-gray-400">
+                                                        Are you sure you want to delete the sub user “{subUser.username}”? This action is irreversible.                                                    
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel className="bg-[#1B2B4B] text-white border-[#2C3B5B] hover:bg-[#2C3B5B]">
+                                                        Cancel
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction 
+                                                        onClick={() => deleteSubUser(subUser.id)}
+                                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                                    >
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
                                 </div>
                             ))}
