@@ -1,7 +1,10 @@
-const crypto = require('node:crypto');
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const utils = require('../../utils');
 const User = require('../../models/User');
+const License = require('../../models/License');
+const SubUser = require('../../models/SubUser');
+const App = require('../../models/App');
 
 const getUsers = async (req, res) => {
     try {
@@ -82,9 +85,15 @@ const deleteUser = async (req, res) => {
             return res.status(404).json({ message: 'User not found.' });
         }
 
+        await SubUser.deleteMany({ ownerId: userId });
+        
+        await License.deleteMany({ ownerId: userId });
+        
+        await App.deleteMany({ ownerId: userId });
+        
         await User.deleteOne({ id: userId });
         
-        return res.json({ message: 'User deleted successfully.' });
+        return res.json({ message: 'User and all related data deleted successfully.' });
     } catch (error) {
         console.error('Error deleting user:', error);
         return res.status(500).json({ message: 'Failed to delete user.' });
