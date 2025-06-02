@@ -148,6 +148,30 @@ export default function AdminUsers() {
         }
     }
 
+    async function updateUser(userId, updateData) {
+        const response = await fetch(`${BASE_API}/v${API_VERSION}/admin/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Admin ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(updateData)
+        }).catch(() => null);
+
+        if (!response) return toast.error('Update user', { description: 'Failed to update user. Try again.' });
+
+        const json = await response.json().catch(() => null);
+
+        if (response.ok) {
+            if (!json) return toast.error('Update user', { description: 'Failed to update user. Try again.' });
+
+            mutate(allUsers.map(u => u.id === userId ? {...u, ...json} : u), { revalidate: false });
+            toast.success('Update user', { description: 'Successfully updated user.' });
+        } else {
+            toast.error('Update user', { description: json?.message || 'Failed to update user. Try again.' });
+        }
+    }
+
     const filteredUsers = !allUsers ? [] : allUsers.filter(user => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
@@ -257,7 +281,7 @@ export default function AdminUsers() {
                 <p className="text-sm text-gray-400 mb-2">Total users: {filteredUsers.length}</p>
             </div>
             
-            <UserManagementAdmin users={filteredUsers} deleteUser={deleteUser} toggleBanUser={toggleBanUser} fetcher={fetcher} />
+            <UserManagementAdmin users={filteredUsers} deleteUser={deleteUser} toggleBanUser={toggleBanUser} updateUser={updateUser} fetcher={fetcher} />
         </div>
     );
 }
@@ -489,7 +513,118 @@ function SubUsersDialog({ userId, username, fetcher }) {
     );
 }
 
-const UserManagementAdmin = ({ users, deleteUser, toggleBanUser, fetcher }) => {
+function EditUserDialog({ user, updateUser }) {
+    const [editForm, setEditForm] = useState({
+        username: user.username || '',
+        email: user.email || '',
+        password: '',
+        isAdmin: user.subscription?.plan === 'Admin' || false
+    });
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleUpdate = async () => {
+        const updateData = {};
+        if (editForm.username !== user.username) updateData.username = editForm.username;
+        if (editForm.email !== user.email) updateData.email = editForm.email;
+        if (editForm.password) updateData.password = editForm.password;
+        if (editForm.isAdmin !== (user.subscription?.plan === 'Admin')) {
+            updateData.isAdmin = editForm.isAdmin;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            toast.error('No changes detected');
+            return;
+        }
+
+        await updateUser(user.id, updateData);
+        setIsOpen(false);
+        setEditForm({
+            username: user.username || '',
+            email: user.email || '',
+            password: '',
+            isAdmin: user.subscription?.plan === 'Admin' || false
+        });
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-blue-400 hover:text-blue-500 bg-[#1B2B4B] hover:bg-[#2C3B5B]"
+                >
+                    <Edit className="h-4 w-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#0A1323] border-[#1B2B4B]">
+                <DialogHeader>
+                    <DialogTitle className="text-white">Edit User: {user.username}</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                        Update user information and permissions
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 mt-6">
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-white">Username</Label>
+                        <Input 
+                            value={editForm.username}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                            className="bg-[#1B2B4B] border-[#2C3B5B] text-white"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-white">Email</Label>
+                        <Input 
+                            type="email"
+                            value={editForm.email}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                            className="bg-[#1B2B4B] border-[#2C3B5B] text-white"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-white">New Password (optional)</Label>
+                        <Input 
+                            type="password"
+                            value={editForm.password}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, password: e.target.value }))}
+                            placeholder="Leave empty to keep current password"
+                            className="bg-[#1B2B4B] border-[#2C3B5B] text-white"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="editIsAdmin"
+                            checked={editForm.isAdmin}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, isAdmin: e.target.checked }))}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <Label htmlFor="editIsAdmin" className="text-white">Admin privileges</Label>
+                    </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-6">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setIsOpen(false)}
+                        className="text-gray-400 hover:text-white bg-[#2C3B5B] hover:bg-[#3C4B6B]"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleUpdate}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        disabled={!editForm.username || !editForm.email}
+                    >
+                        Update User
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+const UserManagementAdmin = ({ users, deleteUser, toggleBanUser, updateUser, fetcher }) => {
     const { user: currentUser } = useAuth();
     const columns = ["ID", "Username", "Admin", "Status", "Created At", "Actions"];
 
@@ -518,6 +653,7 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser, fetcher }) => {
         action: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
                 <SubUsersDialog userId={id} username={username} fetcher={fetcher} />
+                <EditUserDialog user={{ id, username, email: users.find(u => u.id === id)?.email, subscription }} updateUser={updateUser} />
                 <Button 
                     variant="ghost" 
                     size="icon" 

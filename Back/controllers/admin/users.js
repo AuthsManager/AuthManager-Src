@@ -72,6 +72,92 @@ const createUser = async (req, res) => {
     return res.json(userResponse);
 }
 
+const updateUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { username, email, password, isAdmin } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required.' });
+        }
+
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const updateData = {};
+
+        if (username !== undefined) {
+            if (!username) {
+                return res.status(400).json({ message: 'Username cannot be empty.' });
+            }
+            const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,15}$/;
+            if (!usernameRegex.test(username)) {
+                return res.status(400).json({ message: 'The provided username is invalid.' });
+            }
+            const existingUsername = await User.findOne({ username, id: { $ne: userId } });
+            if (existingUsername) {
+                return res.status(400).json({ message: 'Username already in use.' });
+            }
+            updateData.username = username;
+        }
+
+        if (email !== undefined) {
+            if (!email) {
+                return res.status(400).json({ message: 'Email cannot be empty.' });
+            }
+            const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ message: 'The provided email is invalid.' });
+            }
+            const existingEmail = await User.findOne({ email, id: { $ne: userId } });
+            if (existingEmail) {
+                return res.status(400).json({ message: 'Email already in use.' });
+            }
+            updateData.email = email;
+        }
+
+        if (password !== undefined && password !== '') {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(400).json({ 
+                    message: 'The password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number and one special character.' 
+                });
+            }
+            updateData.password = bcrypt.hashSync(password, 10);
+        }
+
+        if (isAdmin !== undefined) {
+            if (typeof isAdmin !== 'boolean') {
+                return res.status(400).json({ message: 'IsAdmin must be a boolean value.' });
+            }
+            updateData['subscription.plan'] = isAdmin ? 'Admin' : 'Starter';
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { id: userId },
+            { $set: updateData },
+            { new: true, select: '-password' }
+        );
+
+        return res.json({
+            message: 'User updated successfully.',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                created_at: updatedUser.created_at,
+                subscription: updatedUser.subscription,
+                settings: updatedUser.settings
+            }
+        });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        return res.status(500).json({ message: 'Failed to update user.' });
+    }
+}
+
 const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -103,5 +189,6 @@ const deleteUser = async (req, res) => {
 module.exports = {
     getUsers,
     createUser,
+    updateUser,
     deleteUser
 };
