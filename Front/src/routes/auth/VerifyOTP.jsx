@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
@@ -107,11 +107,6 @@ export default function VerifyOTP() {
         }
     };
 
-    const handleOtpChange = (e) => {
-        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-        setOtpCode(value);
-    };
-
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             verifyOTP();
@@ -163,21 +158,30 @@ export default function VerifyOTP() {
                             className="p-6 space-y-4"
                         >
                             <div className="space-y-4">
-                                <div className="text-center">
-                                    <Input
-                                        className="w-full px-4 py-3 bg-white/5 border-white/10 rounded-lg focus:ring-primary/50 focus:border-primary/50 text-white placeholder-white/40 text-center text-2xl font-mono tracking-widest"
-                                        type="text"
-                                        placeholder="000000"
-                                        value={otpCode}
-                                        onChange={handleOtpChange}
-                                        onKeyPress={handleKeyPress}
+                                <div className="flex justify-center items-center">
+                                    <InputOTP
                                         maxLength={6}
-                                        autoComplete="one-time-code"
-                                    />
-                                    <p className="text-white/40 text-sm mt-2">
+                                        value={otpCode}
+                                        onChange={setOtpCode}
+                                        onKeyDown={handleKeyPress}
+                                        className="flex justify-center items-center"
+                                    >
+                                        <InputOTPGroup className="gap-2">
+                                            <InputOTPSlot index={0} className="w-12 h-12 text-xl bg-white/5 border-white/10 text-white" />
+                                            <InputOTPSlot index={1} className="w-12 h-12 text-xl bg-white/5 border-white/10 text-white" />
+                                            <InputOTPSlot index={2} className="w-12 h-12 text-xl bg-white/5 border-white/10 text-white" />
+                                        </InputOTPGroup>
+                                        <InputOTPSeparator />
+                                        <InputOTPGroup className="gap-2">
+                                            <InputOTPSlot index={3} className="w-12 h-12 text-xl bg-white/5 border-white/10 text-white" />
+                                            <InputOTPSlot index={4} className="w-12 h-12 text-xl bg-white/5 border-white/10 text-white" />
+                                            <InputOTPSlot index={5} className="w-12 h-12 text-xl bg-white/5 border-white/10 text-white" />
+                                        </InputOTPGroup>
+                                    </InputOTP>
+                                </div>
+                                    <p className="text-white/40 text-sm mt-2 text-center">
                                         6 digits code
                                     </p>
-                                </div>
                             </div>
 
                             <Button
@@ -191,7 +195,7 @@ export default function VerifyOTP() {
                             <div className="text-center">
                                 <Button
                                     variant="ghost"
-                                    className="text-white/60 hover:text-white"
+                                    className="text-white/60 hover:text-white font-light"
                                     onClick={resendOTP}
                                     disabled={resendLoading || countdown > 0}
                                 >
