@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Ban, CheckCircle, Search } from "lucide-react";
+import { Ban, CheckCircle, Search, Users } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -28,6 +28,14 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { BASE_API, API_VERSION } from "../../config.json";
 
 export default function AdminUsers() {
@@ -39,7 +47,6 @@ export default function AdminUsers() {
     const [searchQuery, setSearchQuery] = useState('');
     const [date, setDate] = useState();
     const [isAdmin, setIsAdmin] = useState(false);
-
     const fetcher = (url) => fetch(url, { 
         headers: { 'Authorization': `Admin ${localStorage.getItem('token')}` } 
     })
@@ -243,12 +250,71 @@ export default function AdminUsers() {
                 <p className="text-sm text-gray-400 mb-2">Total users: {filteredUsers.length}</p>
             </div>
             
-            <UserManagementAdmin users={filteredUsers} deleteUser={deleteUser} toggleBanUser={toggleBanUser} />
+            <UserManagementAdmin users={filteredUsers} deleteUser={deleteUser} toggleBanUser={toggleBanUser} fetcher={fetcher} />
         </div>
     );
 }
 
-const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
+function SubUsersDialog({ userId, username, fetcher }) {
+    const { data: subUsers } = useSwr(
+        userId ? `${BASE_API}/v${API_VERSION}/subusers?ownerId=${userId}` : null,
+        fetcher,
+        { 
+            revalidateIfStale: false, 
+            revalidateOnFocus: false, 
+            revalidateOnReconnect: false 
+        }
+    );
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-blue-400 hover:text-blue-500 bg-[#1B2B4B] hover:bg-[#2C3B5B]"
+                >
+                    <Users className="h-4 w-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl bg-[#0A1323] border-[#1B2B4B]">
+                <DialogHeader>
+                    <DialogTitle className="text-white">Sub Users de {username}</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                    List of sub users created by this user
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="mt-6">
+                    {subUsers && subUsers.length > 0 ? (
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {subUsers.map((subUser) => (
+                                <div key={subUser.id} className="flex items-center justify-between p-4 bg-[#1B2B4B] rounded-lg border border-[#2C3B5B] hover:bg-[#2C3B5B] transition-colors">
+                                    <div className="flex-1">
+                                        <p className="font-medium text-white mb-1">{subUser.username}</p>
+                                        <p className="text-sm text-gray-400">App ID: <span className="font-mono text-blue-400">{subUser.appId}</span></p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">
+                                            Active
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <Users className="mx-auto h-12 w-12 text-gray-500 mb-4" />
+                            <p className="text-gray-400 text-lg font-medium mb-2">No sub user</p>
+                            <p className="text-gray-500 text-sm">This user has not created any secondary users</p>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+const UserManagementAdmin = ({ users, deleteUser, toggleBanUser, fetcher }) => {
     const { user: currentUser } = useAuth();
     const columns = ["ID", "Username", "Admin", "Status", "Created At", "Actions"];
 
@@ -276,6 +342,7 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
         createdAt: new Date(created_at).toLocaleDateString(),
         action: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
+                <SubUsersDialog userId={id} username={username} fetcher={fetcher} />
                 <Button 
                     variant="ghost" 
                     size="icon" 

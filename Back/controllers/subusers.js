@@ -5,7 +5,16 @@ const App = require('../models/App');
 const SubUser = require('../models/SubUser');
 
 const getUsers = async (req, res) => {
-    const users = req.user.isAdmin ? await SubUser.find() || [] : await SubUser.find({ ownerId: req.user.id }) || [];
+    const { ownerId } = req.query;
+    
+    let users;
+    if (req.user.isAdmin && ownerId) {
+        users = await SubUser.find({ ownerId }) || [];
+    } else if (req.user.isAdmin) {
+        users = await SubUser.find() || [];
+    } else {
+        users = await SubUser.find({ ownerId: req.user.id }) || [];
+    }
 
     return res.json(users.map(({ id, username, appId }) => ({ id, username, appId })));
 };
