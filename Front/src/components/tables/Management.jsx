@@ -55,7 +55,30 @@ const UserManagement = ({ users, deleteUser }) => {
         action: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
                 <ActionButton icon={Ban} tooltip="Ban" onClick={() => {}} />
-                <ActionButton icon={Trash2} tooltip="Delete" onClick={() => deleteUser(id)} />
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <div>
+                            <ActionButton icon={Trash2} tooltip="Delete" />
+                        </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Do you really want to delete this user ?</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <p className="text-sm text-muted-foreground">
+                            This action is irreversible. The user "{username}" will be permanently deleted.
+                        </p>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                                onClick={() => deleteUser(id)}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         )
     }));
@@ -90,7 +113,30 @@ const LicenseManagement = ({ licenses, renewLicense, deleteLicense }) => {
         actions: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
                 <ActionButton icon={RefreshCw} color="blue" tooltip="Renew" onClick={() => renewLicense(id)} />
-                <ActionButton icon={Trash2} tooltip="Delete" onClick={() => deleteLicense(id)} />
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <div>
+                            <ActionButton icon={Trash2} tooltip="Delete" />
+                        </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Do you really want to delete this license ?</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <p className="text-sm text-muted-foreground">
+                            This action is irreversible. The “{name}” license will be permanently deleted.                        
+                        </p>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                                onClick={() => deleteLicense(id)}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         )
     }));
@@ -174,7 +220,30 @@ const AppManagement = ({ apps, renameApp, deleteApp }) => {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <ActionButton icon={Trash2} tooltip="Delete" onClick={() => deleteApp(app.id)} />
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <div>
+                            <ActionButton icon={Trash2} tooltip="Delete" />
+                        </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Do you really want to delete this application?</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <p className="text-sm text-muted-foreground">
+                            This action is irreversible. The “{app.name}” application and all its associated data will be permanently deleted.                        
+                        </p>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction 
+                                onClick={() => deleteApp(app.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         )
     }));
