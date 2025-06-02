@@ -47,6 +47,47 @@ const createUser = async (req, res) => {
     return res.json({ id: user.id, username, appId });
 }
 
+const updateUser = async (req, res) => {
+    const { userId } = req.params;
+    const { username, password, appId } = req.body;
+
+    const user = await SubUser.findOne({ id: userId });
+    if (!user) return res.status(400).json({ message: 'The provided user doesn\'t exist.' });
+
+    if (!req.user.isAdmin && user.ownerId !== req.user.id) {
+        return res.status(403).json({ message: 'You don\'t have permission to update this user.' });
+    }
+
+    if (username) {
+        const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,15}$/;
+        if (!usernameRegex.test(username)) return res.status(400).json({ message: 'The provided username is invalid.' });
+
+        const existingUsername = await SubUser.findOne({ ownerId: user.ownerId, username, id: { $ne: userId } });
+        if (existingUsername) return res.status(400).json({ message: 'Username already in use.' });
+
+        user.username = username;
+    }
+
+    if (password) {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        // if (!passwordRegex.test(password)) return res.status(400).json({ message: 'The password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number and one special character.' });
+        
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        user.password = hashedPassword;
+    }
+
+    if (appId) {
+        const app = await App.findOne({ id: appId });
+        if (!app) return res.status(400).json({ message: 'Invalid app id.' });
+        
+        user.appId = appId;
+    }
+
+    await user.save();
+
+    return res.json({ id: user.id, username: user.username, appId: user.appId });
+};
+
 const deleteUser = async (req, res) => {
     const { userId } = req.params;
 
@@ -61,5 +102,6 @@ const deleteUser = async (req, res) => {
 module.exports = {
     getUsers,
     createUser,
+    updateUser,
     deleteUser
 };

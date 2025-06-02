@@ -96,6 +96,15 @@ export default function Users() {
         }
     }
 
+    function updateUser(userId, updateData) {
+        const updatedUsers = users.map(user => 
+            user.id === userId 
+                ? { ...user, ...updateData }
+                : user
+        );
+        mutate(updatedUsers, { revalidate: false });
+    }
+
     return (
         <div className="bg-[#0A1323] py-4 px-6 rounded-lg border border-[#1B2B4B]">
             <h2 className="text-xl md:text-2xl font-bold mb-4">User management</h2>
@@ -143,7 +152,7 @@ export default function Users() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <UserManagement users={users} deleteUser={deleteUser} />
+            <UserManagement users={users} deleteUser={deleteUser} updateUser={updateUser} />
         </div>
     );
 }

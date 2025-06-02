@@ -10,8 +10,15 @@ import TableManagement from "@/components/tables/Table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Ban, CheckCircle, Search, Users, X } from "lucide-react";
+import { Ban, CheckCircle, Search, Users, X, Edit } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -256,6 +263,10 @@ export default function AdminUsers() {
 }
 
 function SubUsersDialog({ userId, username, fetcher }) {
+    const { user } = useAuth();
+    const [editingUser, setEditingUser] = useState(null);
+    const [editForm, setEditForm] = useState({ username: '', password: '', appId: '' });
+    
     const { data: subUsers, mutate } = useSwr(
         userId ? `${BASE_API}/v${API_VERSION}/subusers?ownerId=${userId}` : null,
         fetcher,
@@ -285,6 +296,51 @@ function SubUsersDialog({ userId, username, fetcher }) {
         }
     };
 
+    const startEditing = (subUser) => {
+        setEditingUser(subUser.id);
+        setEditForm({
+            username: subUser.username,
+            password: '',
+            appId: subUser.appId
+        });
+    };
+
+    const cancelEditing = () => {
+        setEditingUser(null);
+        setEditForm({ username: '', password: '', appId: '' });
+    };
+
+    const updateSubUser = async (subUserId) => {
+        try {
+            const updateData = {};
+            if (editForm.username) updateData.username = editForm.username;
+            if (editForm.password) updateData.password = editForm.password;
+            if (editForm.appId) updateData.appId = editForm.appId;
+
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/subusers/${subUserId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Admin ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (response.ok) {
+                mutate();
+                setEditingUser(null);
+                setEditForm({ username: '', password: '', appId: '' });
+                toast.success('Sub-user updated successfully');
+            } else {
+                const errorData = await response.json();
+                toast.error(errorData.message || 'Failed to update sub-user');
+            }
+        } catch (error) {
+            console.error('Error updating sub-user:', error);
+            toast.error('Error updating sub-user');
+        }
+    };
+
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -307,17 +363,85 @@ function SubUsersDialog({ userId, username, fetcher }) {
                     {subUsers && subUsers.length > 0 ? (
                         <div className="space-y-3 max-h-96 overflow-y-auto">
                             {subUsers.map((subUser) => (
-                                <div key={subUser.id} className="flex items-center justify-between p-4 bg-[#1B2B4B] rounded-lg border border-[#2C3B5B] hover:bg-[#2C3B5B] transition-colors">
-                                    <div className="flex-1">
-                                        <p className="font-medium text-white mb-1">{subUser.username}</p>
-                                        <p className="text-sm text-gray-400">App ID: <span className="font-mono text-blue-400">{subUser.appId}</span></p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">
-                                            Active
-                                        </span>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
+                                <div key={subUser.id} className="p-4 bg-[#1B2B4B] rounded-lg border border-[#2C3B5B] hover:bg-[#2C3B5B] transition-colors">
+                                    {editingUser === subUser.id ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div>
+                                                    <Label htmlFor="edit-username" className="text-white mb-2 block">Username</Label>
+                                                    <Input
+                                                        id="edit-username"
+                                                        value={editForm.username}
+                                                        onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                                                        className="bg-[#0A1323] border-[#2C3B5B] text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="edit-password" className="text-white mb-2 block">New Password (optional)</Label>
+                                                    <Input
+                                                        id="edit-password"
+                                                        type="password"
+                                                        value={editForm.password}
+                                                        onChange={(e) => setEditForm(prev => ({ ...prev, password: e.target.value }))}
+                                                        className="bg-[#0A1323] border-[#2C3B5B] text-white"
+                                                        placeholder="Leave empty to keep current password"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="edit-appId" className="text-white mb-2 block">Application</Label>
+                                                    <Select
+                                                        value={editForm.appId}
+                                                        onValueChange={(value) => setEditForm(prev => ({ ...prev, appId: value }))}
+                                                    >
+                                                        <SelectTrigger className="bg-[#0A1323] border-[#2C3B5B] text-white">
+                                                            <SelectValue placeholder="Select an application" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-[#0A1323] border-[#2C3B5B]">
+                                                            {user.applications?.map((app) => (
+                                                                <SelectItem key={app.id} value={app.id} className="text-white hover:bg-[#2C3B5B]">
+                                                                    {app.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={cancelEditing}
+                                                    className="text-gray-400 hover:text-white bg-[#2C3B5B] hover:bg-[#3C4B6B]"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    onClick={() => updateSubUser(subUser.id)}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                >
+                                                    Save
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1">
+                                                <p className="font-medium text-white mb-1">{subUser.username}</p>
+                                                <p className="text-sm text-gray-400">App ID: <span className="font-mono text-blue-400">{subUser.appId}</span></p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">
+                                                    Active
+                                                </span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => startEditing(subUser)}
+                                                    className="text-blue-400 hover:text-blue-500 bg-blue-900/20 hover:bg-blue-900/30 h-8 w-8"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
                                                 <Button 
                                                     variant="ghost" 
                                                     size="icon" 
@@ -347,6 +471,8 @@ function SubUsersDialog({ userId, username, fetcher }) {
                                             </AlertDialogContent>
                                         </AlertDialog>
                                     </div>
+                                </div>
+                            )}
                                 </div>
                             ))}
                         </div>
