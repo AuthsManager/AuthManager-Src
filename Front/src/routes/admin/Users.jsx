@@ -251,16 +251,16 @@ export default function AdminUsers() {
 const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
     const columns = ["ID", "Username", "Admin", "Status", "Created At", "Actions"];
 
-    const data = !users || !Array.isArray(users) ? [] : users.map(({ id, username, isAdmin, banned, createdAt }) => ({
+    const data = !users || !Array.isArray(users) ? [] : users.map(({ id, username, subscription, banned, created_at }) => ({
         id,
         username,
-        admin: isAdmin ? (
-            <span className="px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B] text-blue-400">
-                Admin
-            </span>
-        ) : (
-            <span className="px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B] text-gray-400">
-                User
+        admin: (
+            <span className={`px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B] ${
+                subscription?.plan === 'Admin' ? 'text-blue-400' :
+                subscription?.plan === 'Founder' ? 'text-red-400' :
+                'text-gray-400'
+            }`}>
+                {subscription?.plan || 'User'}
             </span>
         ),
         status: banned ? (
@@ -272,7 +272,7 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
                 Active
             </span>
         ),
-        createdAt: new Date(createdAt).toLocaleDateString(),
+        createdAt: new Date(created_at).toLocaleDateString(),
         action: (
             <div className="flex items-center gap-2 justify-start md:justify-end">
                 <Button 
