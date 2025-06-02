@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
 import { 
@@ -7,6 +7,7 @@ import {
     Moon,
     Sun
 } from "lucide-react";
+import { BASE_API, API_VERSION } from "../../config.json";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +21,10 @@ import {
 } from "@/components/ui/card";
 
 export default function Settings() {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [settings, setSettings] = useState({
-        email: user.email || "",
+        email: user?.email || "",
         notifications: {
             updates: true,
             security: true,
@@ -34,13 +35,73 @@ export default function Settings() {
         twoFactor: false
     });
 
+    useEffect(() => {
+        if (user?.settings) {
+            setSettings({
+                email: user.email || "",
+                notifications: user.settings.notifications || {
+                    updates: true,
+                    security: true,
+                    marketing: false
+                },
+                theme: user.settings.theme || "dark",
+                language: user.settings.language || "en",
+                twoFactor: user.settings.twoFactor || false
+            });
+        }
+    }, [user]);
+
     const updateSettings = async (section, data) => {
         setIsLoading(true);
         try {
-            // await new Promise(resolve => setTimeout(resolve, 1000));
-            setSettings(prev => ({ ...prev, ...data }));
-            toast.success("Settings updated successfully");
+            const token = localStorage.getItem('token');
+            let response;
+
+            if (section === "profile") {
+                response = await fetch(`${BASE_API}/v${API_VERSION}/users/profile`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `User ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                const settingsData = {};
+                if (data.notifications) settingsData.notifications = data.notifications;
+                if (data.theme) settingsData.theme = data.theme;
+                if (data.language) settingsData.language = data.language;
+                if (data.twoFactor !== undefined) settingsData.twoFactor = data.twoFactor;
+
+                response = await fetch(`${BASE_API}/v${API_VERSION}/users/settings`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `User ${token}`
+                    },
+                    body: JSON.stringify(settingsData)
+                });
+            }
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setSettings(prev => ({ ...prev, ...data }));
+                
+                // Update user context with new data
+                if (section === "profile") {
+                    updateUser({ ...user, email: data.email });
+                } else {
+                    const updatedSettings = { ...user.settings, ...data };
+                    updateUser({ ...user, settings: updatedSettings });
+                }
+                
+                toast.success(result.message || "Settings updated successfully");
+            } else {
+                toast.error(result.message || "Failed to update settings");
+            }
         } catch (error) {
+            console.error('Error updating settings:', error);
             toast.error("Failed to update settings");
         } finally {
             setIsLoading(false);
@@ -60,10 +121,30 @@ export default function Settings() {
 
         setIsLoading(true);
         try {
-            // await new Promise(resolve => setTimeout(resolve, 1000));
-            toast.success("Password updated successfully");
-            e.target.reset();
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/users/password`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `User ${token}`
+                },
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword,
+                    confirmPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success(result.message || "Password updated successfully");
+                e.target.reset();
+            } else {
+                toast.error(result.message || "Failed to update password");
+            }
         } catch (error) {
+            console.error('Error updating password:', error);
             toast.error("Failed to update password");
         } finally {
             setIsLoading(false);
@@ -99,7 +180,7 @@ export default function Settings() {
                         </div>
                         <Button 
                             variant="outline" 
-                            onClick={() => toast.info("Email verification sent")}
+                            onClick={() => toast.info("Email verification feature coming soon")}
                             className="w-full"
                         >
                             <Mail className="w-4 h-4 mr-2" />
