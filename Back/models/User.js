@@ -12,13 +12,6 @@ const userSchema = new Schema({
         expires: { type: Number, default: 0 }
     },
     settings: {
-        notifications: {
-            updates: { type: Boolean, default: true },
-            security: { type: Boolean, default: true },
-            marketing: { type: Boolean, default: false }
-        },
-        theme: { type: String, default: 'dark' },
-        language: { type: String, default: 'en' },
         twoFactor: { type: Boolean, default: false }
     }
 });

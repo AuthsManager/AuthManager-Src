@@ -36,17 +36,21 @@ export default function Settings() {
     });
 
     useEffect(() => {
-        if (user?.settings) {
+        if (user) {
+            const savedNotifications = localStorage.getItem('notifications');
+            const savedTheme = localStorage.getItem('theme');
+            const savedLanguage = localStorage.getItem('language');
+            
             setSettings({
                 email: user.email || "",
-                notifications: user.settings.notifications || {
+                notifications: savedNotifications ? JSON.parse(savedNotifications) : {
                     updates: true,
                     security: true,
                     marketing: false
                 },
-                theme: user.settings.theme || "dark",
-                language: user.settings.language || "en",
-                twoFactor: user.settings.twoFactor || false
+                theme: savedTheme || "dark",
+                language: savedLanguage || "en",
+                twoFactor: user.settings?.twoFactor || false
             });
         }
     }, [user]);
@@ -58,48 +62,56 @@ export default function Settings() {
             let response;
 
             if (section === "profile") {
-                response = await fetch(`${BASE_API}/v${API_VERSION}/users/profile`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `User ${token}`
-                    },
-                    body: JSON.stringify(data)
-                });
-            } else {
-                const settingsData = {};
-                if (data.notifications) settingsData.notifications = data.notifications;
-                if (data.theme) settingsData.theme = data.theme;
-                if (data.language) settingsData.language = data.language;
-                if (data.twoFactor !== undefined) settingsData.twoFactor = data.twoFactor;
-
-                response = await fetch(`${BASE_API}/v${API_VERSION}/users/settings`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `User ${token}`
-                    },
-                    body: JSON.stringify(settingsData)
-                });
-            }
-
-            const result = await response.json();
-
-            if (response.ok) {
-                setSettings(prev => ({ ...prev, ...data }));
-                
-                // Update user context with new data
-                if (section === "profile") {
-                    updateUser({ ...user, email: data.email });
-                } else {
-                    const updatedSettings = { ...user.settings, ...data };
-                    updateUser({ ...user, settings: updatedSettings });
-                }
-                
-                toast.success(result.message || "Settings updated successfully");
-            } else {
-                toast.error(result.message || "Failed to update settings");
-            }
+                 response = await fetch(`${BASE_API}/v${API_VERSION}/users/profile`, {
+                     method: 'PATCH',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'Authorization': `User ${token}`
+                     },
+                     body: JSON.stringify(data)
+                 });
+             } else if (section === "security" && data.twoFactor !== undefined) {
+                 response = await fetch(`${BASE_API}/v${API_VERSION}/users/settings`, {
+                     method: 'PATCH',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'Authorization': `User ${token}`
+                     },
+                     body: JSON.stringify({ twoFactor: data.twoFactor })
+                 });
+             } else {
+                 if (data.notifications) {
+                     localStorage.setItem('notifications', JSON.stringify(data.notifications));
+                 }
+                 if (data.theme) {
+                     localStorage.setItem('theme', data.theme);
+                 }
+                 if (data.language) {
+                     localStorage.setItem('language', data.language);
+                 }
+                 
+                  response = { ok: true };
+              }
+ 
+             if (response.ok) {
+                  setSettings(prev => ({ ...prev, ...data }));
+                  
+                  if (section === "profile") {
+                      const result = await response.json();
+                      updateUser({ ...user, email: data.email });
+                      toast.success(result.message || "Settings updated successfully");
+                  } else if (section === "security" && data.twoFactor !== undefined) {
+                      const result = await response.json();
+                      const updatedSettings = { ...user.settings, twoFactor: data.twoFactor };
+                      updateUser({ ...user, settings: updatedSettings });
+                      toast.success(result.message || "Settings updated successfully");
+                  } else {
+                      toast.success("Settings updated successfully");
+                  }
+              } else {
+                  const result = await response.json();
+                  toast.error(result.message || "Failed to update settings");
+              }
         } catch (error) {
             console.error('Error updating settings:', error);
             toast.error("Failed to update settings");

@@ -13,18 +13,16 @@ const getMe = async (req, res) => {
 
 const updateSettings = async (req, res) => {
     try {
-        const { notifications, theme, language, twoFactor } = req.body;
+        const { twoFactor } = req.body;
         const userId = req.user.id;
 
-        const updateData = {};
-        if (notifications) updateData['settings.notifications'] = notifications;
-        if (theme) updateData['settings.theme'] = theme;
-        if (language) updateData['settings.language'] = language;
-        if (twoFactor !== undefined) updateData['settings.twoFactor'] = twoFactor;
+        if (twoFactor === undefined) {
+            return res.status(400).json({ message: 'No valid settings provided' });
+        }
 
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { $set: updateData },
+            { $set: { 'settings.twoFactor': twoFactor } },
             { new: true }
         );
 
