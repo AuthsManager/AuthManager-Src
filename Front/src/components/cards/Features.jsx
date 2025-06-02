@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
+import { motion } from 'framer-motion';
 import { 
   Shield, 
   LineChart, 
@@ -10,9 +11,10 @@ import {
 } from 'lucide-react';
 
 const FeatureCard = ({ title, description, icon: Icon, index }) => (
-  <div
-    data-aos="fade-up"
-    data-aos-delay={index * 100}
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay: index * 0.1 }}
     className="relative group"
   >
     <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
@@ -25,7 +27,7 @@ const FeatureCard = ({ title, description, icon: Icon, index }) => (
         <p className="text-muted-foreground">{description}</p>
       </div>
     </Card>
-  </div>
+  </motion.div>
 );
 
 export default function Features() {
@@ -65,14 +67,19 @@ export default function Features() {
   return (
     <div className="relative py-20">
       <div className="relative container mx-auto px-4">
-        <div className="text-center mb-16" data-aos="fade-up">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
           <h2 className="text-4xl font-bold mb-4 text-foreground">
             Powerful Features
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Everything you need to manage authentication and user access in one place
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
