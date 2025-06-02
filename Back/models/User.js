@@ -7,6 +7,9 @@ const userSchema = new Schema({
     password: String,
     token: String,
     created_at: Number,
+    isVerified: { type: Boolean, default: false },
+    otpCode: String,
+    otpExpires: Number,
     subscription: {
         plan: { type: String, default: 'Starter' },
         expires: { type: Number, default: 0 }

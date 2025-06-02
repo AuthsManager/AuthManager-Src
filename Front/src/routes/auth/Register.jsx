@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,10 @@ import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
 import { BASE_API, API_VERSION } from "../../config.json";
 
 export default function Register() {
-    // const [datas, setDatas] = useState({ username: '', email: '', password: '', license: '' });
     const [datas, setDatas] = useState({ username: '', email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const fadeInVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -33,24 +34,37 @@ export default function Register() {
         if (datas.password !== datas.confirmPassword) return setError('Passwords are not matching.');
 
         setError('');
+        setLoading(true);
 
-        fetch(`${BASE_API}/v${API_VERSION}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datas)
-        })
-            .then(response => response.json())
-            .then(json => {
-                if (json.token) {
-                    localStorage.setItem('token', json.token);
-                    window.location.replace('/dash/dashboard');
-                } else {
-                    setError(json.message || 'An error occured.');
-                }
-            })
-            .catch(() => setError('An error occured.'));
+        try {
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datas)
+            });
+
+            const json = await response.json();
+
+            if (json.requiresVerification && json.userId) {
+                navigate('/auth/verifyotp', {
+                    state: {
+                        userId: json.userId,
+                        username: datas.username
+                    }
+                });
+            } else if (json.token) {
+                localStorage.setItem('token', json.token);
+                window.location.replace('/dash/dashboard');
+            } else {
+                setError(json.message || 'An error occurred.');
+            }
+        } catch (err) {
+            setError('Login error.');
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -135,8 +149,9 @@ export default function Register() {
                             <Button
                                 className="w-full py-2 bg-primary/90 hover:bg-primary text-white rounded-lg transition-all duration-200 backdrop-blur-sm"
                                 onClick={register}
+                                disabled={loading}
                             >
-                                Register
+                                {loading ? 'Inscription...' : 'Register'}
                             </Button>
                         </motion.div>
 
