@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { UserManagement } from "@/components/tables/management";
+import TableManagement from "@/components/tables/Table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -76,8 +76,10 @@ export default function AdminUsers() {
             if (!json) return toast.error('Create user', { description: 'Failed to create user. Try again.' });
 
             mutate([...allUsers, json], { revalidate: false });
+            setEmail('');
             setUsername('');
             setPassword('');
+            setDate(undefined);
             setIsAdmin(false);
 
             toast.success('Create user', { description: 'Successfully created user.' });
@@ -297,5 +299,5 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
         )
     }));
 
-    return <UserManagement columns={columns} data={data} />;
+    return <TableManagement columns={columns} data={data} />;
 };

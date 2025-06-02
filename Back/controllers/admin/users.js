@@ -4,7 +4,13 @@ const utils = require('../../utils');
 const User = require('../../models/User');
 
 const getUsers = async (req, res) => {
-    return res.json([]);
+    try {
+        const users = await User.find({}, { password: 0 }); 
+        return res.json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return res.status(500).json({ message: 'Failed to fetch users.' });
+    }
 }
 
 const createUser = async (req, res) => {
@@ -51,7 +57,16 @@ const createUser = async (req, res) => {
     });
     await user.save();
 
-    return res.json({ token });
+    const userResponse = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at,
+        subscription: user.subscription,
+        settings: user.settings
+    };
+
+    return res.json(userResponse);
 }
 
 module.exports = {
