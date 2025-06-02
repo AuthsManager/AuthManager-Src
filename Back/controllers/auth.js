@@ -129,7 +129,7 @@ const login = async (req, res) => {
     const existing = await User.findOne({ email });
 
     if (!existing) return res.status(400).json({ message: 'Email or password is invalid.' });
-    if (!existing.isVerified) return res.status(400).json({ message: 'Veuillez vérifier votre compte avant de vous connecter.' });
+    if (!existing.isVerified) return res.status(400).json({ message: 'Please verify your account before logging in.' });
     if (!bcrypt.compareSync(password, existing.password)) return res.status(400).json({  message: 'Email or password is invalid.' });
 
     return res.json({ token: existing.token });

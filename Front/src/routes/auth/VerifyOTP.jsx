@@ -139,11 +139,11 @@ export default function VerifyOTP() {
                             custom={0}
                             className="p-6 text-center border-b border-white/10"
                         >
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white">
+                            <h1 className="text-3xl font-bold bg-clip-text text-transparent text-white">
                                 Verify OTP
                             </h1>
                             <p className="text-white/60 mt-2">
-                                {username ? `Bonjour ${username} !` : ''} Enter the OTP code sent to your email.
+                                {username ? `Hello ${username} !` : ''} Enter the OTP code sent to your email.
                             </p>
                         </motion.div>
 
