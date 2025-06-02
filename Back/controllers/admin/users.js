@@ -69,7 +69,30 @@ const createUser = async (req, res) => {
     return res.json(userResponse);
 }
 
+const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required.' });
+        }
+
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        await User.deleteOne({ id: userId });
+        
+        return res.json({ message: 'User deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        return res.status(500).json({ message: 'Failed to delete user.' });
+    }
+}
+
 module.exports = {
     getUsers,
-    createUser
+    createUser,
+    deleteUser
 };
