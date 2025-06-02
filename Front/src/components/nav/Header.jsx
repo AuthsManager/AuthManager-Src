@@ -1,10 +1,22 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { User, Menu } from "lucide-react";
+import { User, Menu, Settings, LogOut } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Header({ toggleSidebar }) {
     const { user } = useAuth();
     const location = useLocation();
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.replace('/auth/login');
+    }
 
     const getName = () => {
         const routes = {
@@ -41,9 +53,32 @@ export default function Header({ toggleSidebar }) {
                         <p className="hidden md:block text-white/70">Welcome back,&nbsp;
                             <span className="text-white font-medium">{user.username}</span>
                         </p>
-                        <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-                            <User className="w-5 h-5 text-primary" />
-                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center hover:bg-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <User className="w-5 h-5 text-primary" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem asChild>
+                                    <Link 
+                                        to={`/${location.pathname.includes('admin') ? 'admin' : 'dash'}/settings`}
+                                        className="flex items-center gap-2 w-full cursor-pointer"
+                                    >
+                                        <Settings className="h-4 w-4" />
+                                        Settings
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                    onClick={logout}
+                                    className="flex items-center gap-2 text-red-500 focus:text-red-500 cursor-pointer"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    Log out
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             </div>

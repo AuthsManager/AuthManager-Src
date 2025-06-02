@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { ChevronLeft, ChevronRight, Home, PenTool, Users, Key, Settings, LogOut, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, PenTool, Users, Key, Settings, X } from "lucide-react";
 import logo from "/logo.png";
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -28,10 +28,7 @@ export default function Sidebar({ isOpen, onClose }) {
         return () => window.removeEventListener('resize', manageResize);
     }, []);
 
-    function logout() {
-        localStorage.removeItem('token');
-        window.location.replace('/auth/login');
-    }
+
 
     const NavLink = ({ to, icon: Icon, children }) => {
         const isActive = location.pathname.startsWith(to);
@@ -127,22 +124,6 @@ export default function Sidebar({ isOpen, onClose }) {
                             >
                                 Manage Apps
                             </NavLink>
-                            <NavLink 
-                                to={`/${location.pathname.includes('admin') ? 'admin' : 'dash'}/settings`} 
-                                icon={Settings}
-                            >
-                                Settings
-                            </NavLink>
-                        </div>
-
-                        <div className="p-4 border-t border-white/5">
-                            <button
-                                onClick={logout}
-                                className="flex items-center gap-3 w-full rounded-lg p-3 text-red-500 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/30"
-                            >
-                                <LogOut className="h-[20px] w-[20px] min-w-[20px]" />
-                                <span className={`block ${!opened && !isMobile ? 'hidden' : ''}`}>Log out</span>
-                            </button>
                         </div>
                     </div>
                 </div>
