@@ -249,6 +249,7 @@ export default function AdminUsers() {
 }
 
 const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
+    const { user: currentUser } = useAuth();
     const columns = ["ID", "Username", "Admin", "Status", "Created At", "Actions"];
 
     const data = !users || !Array.isArray(users) ? [] : users.map(({ id, username, subscription, banned, created_at }) => ({
@@ -289,6 +290,7 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
                             variant="ghost" 
                             size="icon" 
                             className="text-red-400 hover:text-red-500 bg-[#1B2B4B] hover:bg-[#2C3B5B]"
+                            disabled={currentUser?.id === id}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                                 <path d="M3 6h18" />
@@ -302,13 +304,17 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser }) => {
                             <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
                         </AlertDialogHeader>
                         <p className="text-sm text-muted-foreground">
-                            This action is irreversible. The user “{username}” will be permanently deleted.
+                            {currentUser?.id === id ? 
+                                "You cannot delete your own account." :
+                                `This action is irreversible. The user "${username}" will be permanently deleted.`
+                            }
                         </p>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction 
                                 onClick={() => deleteUser(id)}
                                 className="bg-red-600 hover:bg-red-700"
+                                disabled={currentUser?.id === id}
                             >
                                 Delete
                             </AlertDialogAction>
