@@ -1,6 +1,8 @@
 const App = require('../models/App');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const { sendEmailVerification } = require('../services/emailService');
+const crypto = require('crypto');
 
 const getMe = async (req, res) => {
     const apps = req.user.isAdmin ? await App.find({ }) || [] : await App.find({ ownerId: req.user.id }) || [];
@@ -116,9 +118,87 @@ const changePassword = async (req, res) => {
     }
 }
 
+const sendEmailVerificationCode = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findOne({ id: userId });
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(400).json({ message: 'Email is already verified' });
+        }
+
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+        user.emailVerificationCode = verificationCode;
+        user.emailVerificationExpires = verificationExpires;
+        await user.save();
+
+        const emailResult = await sendEmailVerification(user.email, verificationCode, user.username);
+        
+        if (!emailResult.success) {
+            return res.status(500).json({ message: 'Error while sending verification email' });
+        }
+
+        return res.json({ message: 'Verification code sent to your email' });
+    } catch (error) {
+        console.error('Error sending email verification:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+const verifyEmailCode = async (req, res) => {
+    try {
+        const { verificationCode } = req.body;
+        const userId = req.user.id;
+
+        if (!verificationCode) {
+            return res.status(400).json({ message: 'Verification code is required' });
+        }
+
+        const user = await User.findOne({ id: userId });
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(400).json({ message: 'Email is already verified' });
+        }
+
+        if (!user.emailVerificationCode || !user.emailVerificationExpires) {
+            return res.status(400).json({ message: 'No verification code found. Please request a new one.' });
+        }
+
+        if (Date.now() > user.emailVerificationExpires) {
+            return res.status(400).json({ message: 'Verification code has expired. Please request a new one.' });
+        }
+
+        if (user.emailVerificationCode !== verificationCode) {
+            return res.status(400).json({ message: 'Invalid verification code' });
+        }
+
+        user.isEmailVerified = true;
+        user.emailVerificationCode = undefined;
+        user.emailVerificationExpires = undefined;
+        await user.save();
+
+        return res.json({ message: 'Email verified successfully!' });
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     getMe,
     updateSettings,
     updateProfile,
-    changePassword
+    changePassword,
+    sendEmailVerificationCode,
+    verifyEmailCode
 };

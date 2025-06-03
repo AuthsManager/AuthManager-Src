@@ -5,7 +5,9 @@ import {
     Mail, 
     Lock, 
     Moon,
-    Sun
+    Sun,
+    Check,
+    Send
 } from "lucide-react";
 import { BASE_API, API_VERSION } from "../../config.json";
 import { Switch } from "@/components/ui/switch";
@@ -23,6 +25,12 @@ import {
 export default function Settings() {
     const { user, updateUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
+    const [emailVerification, setEmailVerification] = useState({
+        isVerifying: false,
+        verificationCode: '',
+        codeSent: false,
+        isVerified: user?.isEmailVerified || false
+    });
     const [settings, setSettings] = useState({
         email: user?.email || "",
         notifications: {
@@ -52,6 +60,11 @@ export default function Settings() {
                 language: savedLanguage || "en",
                 twoFactor: user.settings?.twoFactor || false
             });
+            
+            setEmailVerification(prev => ({
+                ...prev,
+                isVerified: user.isEmailVerified || false
+            }));
         }
     }, [user]);
 
@@ -120,7 +133,72 @@ export default function Settings() {
         }
     };
 
-    const handlePasswordChange = async (e) => {
+    const manageSendVerificationCode = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/users/send-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `User ${token}`
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setEmailVerification(prev => ({ ...prev, codeSent: true }));
+                toast.success(result.message || "Verification code sent to your email");
+            } else {
+                toast.error(result.message || "Failed to send verification code");
+            }
+        } catch (error) {
+            console.error('Error sending verification code:', error);
+            toast.error("Failed to send verification code");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const manageVerifyEmail = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/users/verify-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `User ${token}`
+                },
+                body: JSON.stringify({
+                    verificationCode: emailVerification.verificationCode
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setEmailVerification({
+                    isVerifying: false,
+                    verificationCode: '',
+                    codeSent: false,
+                    isVerified: true
+                });
+                updateUser({ ...user, isEmailVerified: true });
+                toast.success(result.message || "Email verified successfully!");
+            } else {
+                toast.error(result.message || "Failed to verify email");
+            }
+        } catch (error) {
+            console.error('Error verifying email:', error);
+            toast.error("Failed to verify email");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const managePasswordChange = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const currentPassword = formData.get("currentPassword");
@@ -190,14 +268,59 @@ export default function Settings() {
                                 placeholder="Enter your email"
                             />
                         </div>
-                        <Button 
-                            variant="outline" 
-                            onClick={() => toast.info("Email verification feature coming soon")}
-                            className="w-full"
-                        >
-                            <Mail className="w-4 h-4 mr-2" />
-                            Verify Email
-                        </Button>
+                        {emailVerification.isVerified ? (
+                            <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <Check className="w-4 h-4 mr-2 text-green-600" />
+                                <span className="text-green-700 font-medium">Email Verified</span>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {!emailVerification.codeSent ? (
+                                    <Button 
+                                        variant="outline" 
+                                        onClick={manageSendVerificationCode}
+                                        disabled={isLoading}
+                                        className="w-full"
+                                    >
+                                        <Send className="w-4 h-4 mr-2" />
+                                        Send Verification Code
+                                    </Button>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <div className="space-y-2">
+                                            <Label>Verification Code</Label>
+                                            <Input
+                                                type="text"
+                                                placeholder="Enter 6-digit code"
+                                                value={emailVerification.verificationCode}
+                                                onChange={(e) => setEmailVerification(prev => ({
+                                                    ...prev,
+                                                    verificationCode: e.target.value
+                                                }))}
+                                                maxLength={6}
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button 
+                                                onClick={manageVerifyEmail}
+                                                disabled={isLoading || emailVerification.verificationCode.length !== 6}
+                                                className="flex-1"
+                                            >
+                                                <Mail className="w-4 h-4 mr-2" />
+                                                Verify Email
+                                            </Button>
+                                            <Button 
+                                                variant="outline"
+                                                onClick={manageSendVerificationCode}
+                                                disabled={isLoading}
+                                            >
+                                                Resend
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -209,7 +332,7 @@ export default function Settings() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <form onSubmit={handlePasswordChange} className="space-y-4">
+                        <form onSubmit={managePasswordChange} className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Current Password</Label>
                                 <Input

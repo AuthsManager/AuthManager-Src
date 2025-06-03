@@ -10,6 +10,9 @@ const userSchema = new Schema({
     isVerified: { type: Boolean, default: false },
     otpCode: String,
     otpExpires: Number,
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationCode: String,
+    emailVerificationExpires: Number,
     subscription: {
         plan: { type: String, default: 'Starter' },
         expires: { type: Number, default: 0 }
