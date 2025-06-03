@@ -1,7 +1,7 @@
 const { Resend } = require('resend');
 require('dotenv').config();
 
-const resend = new Resend(process.env.RESEND_KEY);
+const resend = new Resend(process.env.OTP_RESEND_KEY);
 
 const sendOTPEmail = async (email, otpCode, username) => {
     try {
