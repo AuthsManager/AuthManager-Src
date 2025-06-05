@@ -13,6 +13,8 @@ const userSchema = new Schema({
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationCode: String,
     emailVerificationExpires: Number,
+    passwordResetCode: String,
+    passwordResetExpires: Number,
     subscription: {
         plan: { type: String, default: 'Starter' },
         expires: { type: Number, default: 0 }

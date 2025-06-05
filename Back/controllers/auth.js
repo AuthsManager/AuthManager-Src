@@ -2,7 +2,7 @@ const crypto = require('node:crypto');
 const bcrypt = require('bcrypt');
 const utils = require('../utils');
 const User = require('../models/User');
-const { sendOTPEmail } = require('../services/emailService');
+const { sendOTPEmail, sendPasswordReset } = require('../services/emailService');
 
 const register = async (req, res) => {
     const { username, email, password, confirmPassword } = req.body;
@@ -135,9 +135,98 @@ const login = async (req, res) => {
     return res.json({ token: existing.token });
 }
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required.' });
+        }
+
+        const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format.' });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email address.' });
+        }
+
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+        user.passwordResetCode = resetCode;
+        user.passwordResetExpires = resetExpires;
+        await user.save();
+
+        const emailResult = await sendPasswordReset(email, resetCode, user.username);
+        
+        if (!emailResult.success) {
+            return res.status(500).json({ message: 'Error while sending reset email.' });
+        }
+
+        return res.json({ message: 'Password reset code sent to your email.' });
+    } catch (error) {
+        console.error('Error in forgot password:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, resetCode, newPassword, confirmPassword } = req.body;
+
+        if (!email || !resetCode || !newPassword || !confirmPassword) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match.' });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ 
+                message: 'Password must contain at least 8 characters, including uppercase, lowercase, number and special character.' 
+            });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email address.' });
+        }
+
+        if (!user.passwordResetCode || !user.passwordResetExpires) {
+            return res.status(400).json({ message: 'No reset code found. Please request a new one.' });
+        }
+
+        if (Date.now() > user.passwordResetExpires) {
+            return res.status(400).json({ message: 'Reset code has expired. Please request a new one.' });
+        }
+
+        if (user.passwordResetCode !== resetCode) {
+            return res.status(400).json({ message: 'Invalid reset code.' });
+        }
+
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+        user.password = hashedPassword;
+        user.passwordResetCode = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save();
+
+        return res.json({ message: 'Password reset successfully!' });
+    } catch (error) {
+        console.error('Error in reset password:', error);
+        return res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
 module.exports = {
     login,
     register,
     verifyOTP,
-    resendOTP
+    resendOTP,
+    forgotPassword,
+    resetPassword
 };
