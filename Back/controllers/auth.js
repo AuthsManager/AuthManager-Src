@@ -33,11 +33,14 @@ const register = async (req, res) => {
     if (!password) return res.status(400).json({ message: 'Password is required.' });
     if (!confirmPassword) return res.status(400).json({ message: 'You must confirm your password.' });
     if (password !== confirmPassword) return res.status(400).json({ message: 'Passwords are not matching.' });
-    if (!turnstileToken) return res.status(400).json({ message: 'CAPTCHA verification is required.' });
+    const captchaEnabled = process.env.CAPTCHA_ENABLED === 'false';
+    if (captchaEnabled) {
+        if (!turnstileToken) return res.status(400).json({ message: 'CAPTCHA verification is required.' });
 
-    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
-    if (!isTurnstileValid) {
-        return res.status(400).json({ message: 'CAPTCHA verification failed. Please try again.' });
+        const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
+        if (!isTurnstileValid) {
+            return res.status(400).json({ message: 'CAPTCHA verification failed. Please try again.' });
+        }
     }
 
     const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,15}$/;
@@ -153,7 +156,7 @@ const login = async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email is required.' });
     if (!password) return res.status(400).json({ message: 'Password is required.' });
     
-    const captchaEnabled = process.env.CAPTCHA_ENABLED === 'false'; // TODO : replace by only using env variable
+    const captchaEnabled = process.env.CAPTCHA_ENABLED === 'false';
     if (captchaEnabled) {
         if (!turnstileToken) {
             return res.status(400).json({ message: 'CAPTCHA verification is required.' });
