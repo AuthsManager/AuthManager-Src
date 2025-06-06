@@ -304,9 +304,9 @@ export default function Settings() {
                         </div>
 
                         {emailVerification.isVerified ? (
-                            <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <Check className="w-4 h-4 mr-2 text-green-600" />
-                                <span className="text-green-700 font-medium">Email Verified</span>
+                            <div className="flex items-center justify-center p-3 bg-green-800 border border-green-600 rounded-lg">
+                                <Check className="w-4 h-4 mr-2 text-green-200" />
+                                <span className="text-green-100 font-medium">Email Verified</span>
                             </div>
                         ) : (
                             <div className="space-y-3">
