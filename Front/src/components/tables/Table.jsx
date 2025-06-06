@@ -130,9 +130,9 @@ export default function TableManagement({ columns, data }) {
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   className={`${
                     currentPage === 1 
-                      ? 'pointer-events-none opacity-50 text-white/30' 
+                      ? 'opacity-50 text-white/30' 
                       : 'text-white/70 hover:text-white hover:bg-[#1B2B4B]'
-                  } bg-transparent border-[#1B2B4B]`}
+                  } bg-transparent cursor-pointer border-[#1B2B4B]`}
                 />
               </PaginationItem>
               
@@ -157,9 +157,9 @@ export default function TableManagement({ columns, data }) {
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   className={`${
                     currentPage === totalPages 
-                      ? 'pointer-events-none opacity-50 text-white/30' 
+                      ? 'opacity-50 text-white/30' 
                       : 'text-white/70 hover:text-white hover:bg-[#1B2B4B]'
-                  } bg-transparent border-[#1B2B4B]`}
+                  } bg-transparent cursor-pointer border-[#1B2B4B]`}
                 />
               </PaginationItem>
             </PaginationContent>
