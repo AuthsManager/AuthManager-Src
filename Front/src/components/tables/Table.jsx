@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -7,12 +7,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function TableManagement({ columns, data }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data.length]);
+  
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = data.slice(startIndex, endIndex);
+  
   const renderMobile = () => (
     <div className="space-y-4">
-      {data.length > 0 ? (
-        data.map((row, rowIndex) => (
+      {currentData.length > 0 ? (
+        currentData.map((row, rowIndex) => (
           <div 
             key={rowIndex}
             className="bg-[#0A1323] p-4 rounded-lg border border-[#1B2B4B] space-y-3"
@@ -57,8 +77,8 @@ export default function TableManagement({ columns, data }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.length > 0 ? (
-            data.map((row, rowIndex) => (
+          {currentData.length > 0 ? (
+            currentData.map((row, rowIndex) => (
               <TableRow 
                 key={rowIndex} 
                 className="border-[#1B2B4B] hover:bg-[#1B2B4B]/40 transition-colors duration-200"
@@ -100,6 +120,52 @@ export default function TableManagement({ columns, data }) {
       <div className="md:hidden">
         {renderMobile()}
       </div>
+      
+      {totalPages > 1 && (
+        <div className="p-4 border-t border-[#1B2B4B]">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className={`${
+                    currentPage === 1 
+                      ? 'pointer-events-none opacity-50 text-white/30' 
+                      : 'text-white/70 hover:text-white hover:bg-[#1B2B4B]'
+                  } bg-transparent border-[#1B2B4B]`}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                 <PaginationItem key={page}>
+                   <PaginationLink
+                     onClick={() => setCurrentPage(page)}
+                     isActive={currentPage === page}
+                     className={`${
+                       currentPage === page
+                         ? 'bg-blue-600 text-white border-blue-600'
+                         : 'text-white/70 hover:text-white hover:bg-[#1B2B4B]'
+                     } bg-transparent border-[#1B2B4B] cursor-pointer`}
+                   >
+                     {page}
+                   </PaginationLink>
+                 </PaginationItem>
+               ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className={`${
+                    currentPage === totalPages 
+                      ? 'pointer-events-none opacity-50 text-white/30' 
+                      : 'text-white/70 hover:text-white hover:bg-[#1B2B4B]'
+                  } bg-transparent border-[#1B2B4B]`}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
