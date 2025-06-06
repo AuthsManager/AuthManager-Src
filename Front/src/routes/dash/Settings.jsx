@@ -7,7 +7,8 @@ import {
     Moon,
     Sun,
     Check,
-    Send
+    Send,
+    User
 } from "lucide-react";
 import { BASE_API, API_VERSION } from "../../config.json";
 import { Switch } from "@/components/ui/switch";
@@ -33,6 +34,7 @@ export default function Settings() {
     });
     const [settings, setSettings] = useState({
         email: user?.email || "",
+        username: user?.username || "",
         theme: "dark",
         language: "en",
         twoFactor: false
@@ -45,6 +47,7 @@ export default function Settings() {
             
             setSettings({
                 email: user.email || "",
+                username: user.username || "",
                 theme: savedTheme || "dark",
                 language: savedLanguage || "en",
                 twoFactor: user.settings?.twoFactor || false
@@ -227,6 +230,51 @@ export default function Settings() {
         }
     };
 
+    const manageUsernameChange = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const newUsername = formData.get("newUsername");
+
+        if (!newUsername || newUsername.trim() === "") {
+            return toast.error("Username cannot be empty");
+        }
+
+        if (newUsername === settings.username) {
+            return toast.error("New username must be different from current username");
+        }
+
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_API}/v${API_VERSION}/users/username`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `User ${token}`
+                },
+                body: JSON.stringify({
+                    username: newUsername
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setSettings(prev => ({ ...prev, username: newUsername }));
+                updateUser({ ...user, username: newUsername });
+                toast.success(result.message || "Username updated successfully");
+                e.target.reset();
+            } else {
+                toast.error(result.message || "Failed to update username");
+            }
+        } catch (error) {
+            console.error('Error updating username:', error);
+            toast.error("Failed to update username");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -254,6 +302,7 @@ export default function Settings() {
                                 placeholder="Enter your email"
                             />
                         </div>
+
                         {emailVerification.isVerified ? (
                             <div className="flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg">
                                 <Check className="w-4 h-4 mr-2 text-green-600" />
@@ -307,6 +356,33 @@ export default function Settings() {
                                 )}
                             </div>
                         )}
+                        
+                        <form onSubmit={manageUsernameChange} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Current Username</Label>
+                                <Input
+                                    type="text"
+                                    value={settings.username}
+                                    disabled
+                                    placeholder="Current username"
+                                    className="bg-muted"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>New Username</Label>
+                                <Input
+                                    type="text"
+                                    name="newUsername"
+                                    placeholder="Enter new username"
+                                    required
+                                />
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                <User className="w-4 h-4 mr-2" />
+                                Update Username
+                            </Button>
+                        </form>
+
                     </CardContent>
                 </Card>
 
