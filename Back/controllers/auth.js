@@ -4,7 +4,6 @@ const utils = require('../utils');
 const User = require('../models/User');
 const { sendOTPEmail, sendPasswordReset } = require('../services/emailService');
 
-// Function to verify Cloudflare Turnstile token
 const verifyTurnstileToken = async (token) => {
     try {
         const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -27,13 +26,19 @@ const verifyTurnstileToken = async (token) => {
 };
 
 const register = async (req, res) => {
-    const { username, email, password, confirmPassword } = req.body;
+    const { username, email, password, confirmPassword, turnstileToken } = req.body;
 
     if (!username) return res.status(400).json({ message: 'Username is required.' });
     if (!email) return res.status(400).json({ message: 'Email is required.' });
     if (!password) return res.status(400).json({ message: 'Password is required.' });
     if (!confirmPassword) return res.status(400).json({ message: 'You must confirm your password.' });
     if (password !== confirmPassword) return res.status(400).json({ message: 'Passwords are not matching.' });
+    if (!turnstileToken) return res.status(400).json({ message: 'CAPTCHA verification is required.' });
+
+    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
+    if (!isTurnstileValid) {
+        return res.status(400).json({ message: 'CAPTCHA verification failed. Please try again.' });
+    }
 
     const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,15}$/;
     if (!usernameRegex.test(username)) return res.status(400).json({ message: 'The provided username is invalid.' });
@@ -143,10 +148,16 @@ const resendOTP = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, turnstileToken } = req.body;
 
     if (!email) return res.status(400).json({ message: 'Email is required.' });
     if (!password) return res.status(400).json({ message: 'Password is required.' });
+    if (!turnstileToken) return res.status(400).json({ message: 'CAPTCHA verification is required.' });
+
+    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
+    if (!isTurnstileValid) {
+        return res.status(400).json({ message: 'CAPTCHA verification failed. Please try again.' });
+    }
 
     const existing = await User.findOne({ email });
 
