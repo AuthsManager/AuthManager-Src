@@ -194,11 +194,50 @@ const verifyEmailCode = async (req, res) => {
     }
 };
 
+const updateUsername = async (req, res) => {
+    try {
+        const { username } = req.body;
+        const userId = req.user.id;
+
+        if (!username || username.trim() === '') {
+            return res.status(400).json({ message: 'Username is required' });
+        }
+
+        const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+        if (!usernameRegex.test(username)) {
+            return res.status(400).json({ 
+                message: 'Username must be 3-20 characters long and contain only letters, numbers, and underscores' 
+            });
+        }
+
+        const existingUser = await User.findOne({ username, id: { $ne: userId } });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username already taken' });
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { id: userId },
+            { $set: { username } },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        return res.json({ message: 'Username updated successfully', username: updatedUser.username });
+    } catch (error) {
+        console.error('Error updating username:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 module.exports = {
     getMe,
     updateSettings,
     updateProfile,
     changePassword,
     sendEmailVerificationCode,
-    verifyEmailCode
+    verifyEmailCode,
+    updateUsername
 };
