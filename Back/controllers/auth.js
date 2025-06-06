@@ -153,7 +153,7 @@ const login = async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email is required.' });
     if (!password) return res.status(400).json({ message: 'Password is required.' });
     
-    const captchaEnabled = process.env.CAPTCHA_ENABLED === 'true';
+    const captchaEnabled = process.env.CAPTCHA_ENABLED === 'false'; // TODO : replace by only using env variable
     if (captchaEnabled) {
         if (!turnstileToken) {
             return res.status(400).json({ message: 'CAPTCHA verification is required.' });
