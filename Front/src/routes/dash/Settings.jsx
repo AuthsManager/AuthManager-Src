@@ -33,11 +33,6 @@ export default function Settings() {
     });
     const [settings, setSettings] = useState({
         email: user?.email || "",
-        notifications: {
-            updates: true,
-            security: true,
-            marketing: false
-        },
         theme: "dark",
         language: "en",
         twoFactor: false
@@ -45,17 +40,11 @@ export default function Settings() {
 
     useEffect(() => {
         if (user) {
-            const savedNotifications = localStorage.getItem('notifications');
             const savedTheme = localStorage.getItem('theme');
             const savedLanguage = localStorage.getItem('language');
             
             setSettings({
                 email: user.email || "",
-                notifications: savedNotifications ? JSON.parse(savedNotifications) : {
-                    updates: true,
-                    security: true,
-                    marketing: false
-                },
                 theme: savedTheme || "dark",
                 language: savedLanguage || "en",
                 twoFactor: user.settings?.twoFactor || false
@@ -93,9 +82,6 @@ export default function Settings() {
                      body: JSON.stringify({ twoFactor: data.twoFactor })
                  });
              } else {
-                 if (data.notifications) {
-                     localStorage.setItem('notifications', JSON.stringify(data.notifications));
-                 }
                  if (data.theme) {
                      localStorage.setItem('theme', data.theme);
                  }
@@ -367,66 +353,7 @@ export default function Settings() {
                         </form>
                     </CardContent>
                 </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Notifications</CardTitle>
-                        <CardDescription>
-                            Choose what updates you want to receive
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Product Updates</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    Receive notifications about new features and improvements
-                                </p>
-                            </div>
-                            <Switch
-                                checked={settings.notifications.updates}
-                                onCheckedChange={(checked) =>
-                                    updateSettings("notifications", {
-                                        notifications: { ...settings.notifications, updates: checked }
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Security Alerts</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    Get notified about security updates and unusual activity
-                                </p>
-                            </div>
-                            <Switch
-                                checked={settings.notifications.security}
-                                onCheckedChange={(checked) =>
-                                    updateSettings("notifications", {
-                                        notifications: { ...settings.notifications, security: checked }
-                                    })
-                                }
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Marketing</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    Receive emails about new products, features and more
-                                </p>
-                            </div>
-                            <Switch
-                                checked={settings.notifications.marketing}
-                                onCheckedChange={(checked) =>
-                                    updateSettings("notifications", {
-                                        notifications: { ...settings.notifications, marketing: checked }
-                                    })
-                                }
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-
+                
                 <Card>
                     <CardHeader>
                         <CardTitle>Preferences</CardTitle>
