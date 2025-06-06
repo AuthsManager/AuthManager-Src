@@ -4,6 +4,28 @@ const utils = require('../utils');
 const User = require('../models/User');
 const { sendOTPEmail, sendPasswordReset } = require('../services/emailService');
 
+// Function to verify Cloudflare Turnstile token
+const verifyTurnstileToken = async (token) => {
+    try {
+        const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                secret: process.env.CLOUDFLARE_KEY,
+                response: token
+            })
+        });
+        
+        const result = await response.json();
+        return result.success;
+    } catch (error) {
+        console.error('Turnstile verification error:', error);
+        return false;
+    }
+};
+
 const register = async (req, res) => {
     const { username, email, password, confirmPassword } = req.body;
 

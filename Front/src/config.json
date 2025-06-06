@@ -1,4 +1,5 @@
 {
     "BASE_API": "http://localhost:8080/api",
-    "API_VERSION": 1
+    "API_VERSION": 1,
+    "CLOUDFLARE_SITE_KEY": "YOUR_CLOUDFLARE_SITE_KEY"
 }

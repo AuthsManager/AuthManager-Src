@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
-import { BASE_API, API_VERSION } from "../../config.json";
+import { BASE_API, API_VERSION, CLOUDFLARE_SITE_KEY } from "../../config.json";
 
 export default function Register() {
     const [datas, setDatas] = useState({ username: '', email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState('');
+    const turnstileRef = useRef(null);
     const navigate = useNavigate();
 
     const fadeInVariants = {
@@ -32,6 +34,7 @@ export default function Register() {
         if (!datas.password) return setError('Password is required.');
         if (!datas.confirmPassword) return setError('Password is required.');
         if (datas.password !== datas.confirmPassword) return setError('Passwords are not matching.');
+        if (!turnstileToken) return setError('Please complete the CAPTCHA verification.');
 
         setError('');
         setLoading(true);
@@ -42,7 +45,7 @@ export default function Register() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(datas)
+                body: JSON.stringify({ ...datas, turnstileToken })
             });
 
             const json = await response.json();
@@ -144,6 +147,18 @@ export default function Register() {
                                     placeholder="Confirm password"
                                     onChange={(e) => setDatas(prev => ({ ...prev, confirmPassword: e.target.value }))}
                                 />
+                            </div>
+
+                            <div className="flex justify-center">
+                                <div
+                                    className="cf-turnstile"
+                                    data-sitekey={CLOUDFLARE_SITE_KEY}
+                                    data-callback={(token) => setTurnstileToken(token)}
+                                    data-expired-callback={() => setTurnstileToken('')}
+                                    data-error-callback={() => setTurnstileToken('')}
+                                    data-theme="dark"
+                                    ref={turnstileRef}
+                                ></div>
                             </div>
 
                             <Button
