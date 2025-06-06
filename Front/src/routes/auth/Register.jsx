@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
-import { BASE_API, API_VERSION, CLOUDFLARE_SITE_KEY } from "../../config.json";
+import { BASE_API, API_VERSION, CLOUDFLARE_SITE_KEY, CAPTCHA_ENABLED } from "../../config.json";
 
 export default function Register() {
     const [datas, setDatas] = useState({ username: '', email: '', password: '', confirmPassword: '' });
@@ -34,7 +34,7 @@ export default function Register() {
         if (!datas.password) return setError('Password is required.');
         if (!datas.confirmPassword) return setError('Password is required.');
         if (datas.password !== datas.confirmPassword) return setError('Passwords are not matching.');
-        if (!turnstileToken) return setError('Please complete the CAPTCHA verification.');
+        if (CAPTCHA_ENABLED && !turnstileToken) return setError('Please complete the CAPTCHA verification.');
 
         setError('');
         setLoading(true);
@@ -45,7 +45,7 @@ export default function Register() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ ...datas, turnstileToken })
+                body: JSON.stringify({ ...datas, ...(CAPTCHA_ENABLED && { turnstileToken }) })
             });
 
             const json = await response.json();
@@ -149,17 +149,19 @@ export default function Register() {
                                 />
                             </div>
 
-                            <div className="flex justify-center">
-                                <div
-                                    className="cf-turnstile"
-                                    data-sitekey={CLOUDFLARE_SITE_KEY}
-                                    data-callback={(token) => setTurnstileToken(token)}
-                                    data-expired-callback={() => setTurnstileToken('')}
-                                    data-error-callback={() => setTurnstileToken('')}
-                                    data-theme="dark"
-                                    ref={turnstileRef}
-                                ></div>
-                            </div>
+                            {CAPTCHA_ENABLED && (
+                                <div className="flex justify-center">
+                                    <div
+                                        className="cf-turnstile"
+                                        data-sitekey={CLOUDFLARE_SITE_KEY}
+                                        data-callback={(token) => setTurnstileToken(token)}
+                                        data-expired-callback={() => setTurnstileToken('')}
+                                        data-error-callback={() => setTurnstileToken('')}
+                                        data-theme="dark"
+                                        ref={turnstileRef}
+                                    ></div>
+                                </div>
+                            )}
 
                             <Button
                                 className="w-full py-2 bg-primary/90 hover:bg-primary text-white rounded-lg transition-all duration-200 backdrop-blur-sm"

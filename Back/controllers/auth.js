@@ -152,11 +152,17 @@ const login = async (req, res) => {
 
     if (!email) return res.status(400).json({ message: 'Email is required.' });
     if (!password) return res.status(400).json({ message: 'Password is required.' });
-    if (!turnstileToken) return res.status(400).json({ message: 'CAPTCHA verification is required.' });
+    
+    const captchaEnabled = process.env.CAPTCHA_ENABLED === 'true';
+    if (captchaEnabled) {
+        if (!turnstileToken) {
+            return res.status(400).json({ message: 'CAPTCHA verification is required.' });
+        }
 
-    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
-    if (!isTurnstileValid) {
-        return res.status(400).json({ message: 'CAPTCHA verification failed. Please try again.' });
+        const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
+        if (!isTurnstileValid) {
+            return res.status(400).json({ message: 'CAPTCHA verification failed.' });
+        }
     }
 
     const existing = await User.findOne({ email });

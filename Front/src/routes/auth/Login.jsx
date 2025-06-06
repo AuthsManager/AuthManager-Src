@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BackgroundGrid, GradientOrbs } from "@/components/ui/background";
-import { BASE_API, API_VERSION, CLOUDFLARE_SITE_KEY } from "../../config.json";
+import { BASE_API, API_VERSION, CLOUDFLARE_SITE_KEY, CAPTCHA_ENABLED } from "../../config.json";
 import { toast } from "sonner";
 
 export default function Login() {
@@ -39,7 +39,7 @@ export default function Login() {
     async function login() {
         if (!datas.email) return setError('Email is required.');
         if (!datas.password) return setError('Password is required.');
-        if (!turnstileToken) return setError('Please complete the CAPTCHA verification.');
+        if (CAPTCHA_ENABLED && !turnstileToken) return setError('Please complete the CAPTCHA verification.');
 
         setError('');
 
@@ -48,7 +48,7 @@ export default function Login() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ ...datas, turnstileToken })
+            body: JSON.stringify({ ...datas, ...(CAPTCHA_ENABLED && { turnstileToken }) })
         })
             .then(response => response.json())
             .then(json => {
@@ -56,10 +56,10 @@ export default function Login() {
                     localStorage.setItem('token', json.token);
                     window.location.replace('/dash/dashboard');
                 } else {
-                    setError(json.message || 'An error occured.');
+                    setError(json.message || 'An error occurred.');
                 }
             })
-            .catch(() => setError('An error occured.'));
+            .catch(() => setError('An error occurred.'));
     }
 
     async function manageForgotPassword() {
@@ -204,17 +204,19 @@ export default function Login() {
                                 />
                             </div>
 
-                            <div className="flex justify-center">
-                                <div
-                                    className="cf-turnstile"
-                                    data-sitekey={CLOUDFLARE_SITE_KEY}
-                                    data-callback={(token) => setTurnstileToken(token)}
-                                    data-expired-callback={() => setTurnstileToken('')}
-                                    data-error-callback={() => setTurnstileToken('')}
-                                    data-theme="dark"
-                                    ref={turnstileRef}
-                                ></div>
-                            </div>
+                            {CAPTCHA_ENABLED && (
+                                <div className="flex justify-center">
+                                    <div
+                                        className="cf-turnstile"
+                                        data-sitekey={CLOUDFLARE_SITE_KEY}
+                                        data-callback={(token) => setTurnstileToken(token)}
+                                        data-expired-callback={() => setTurnstileToken('')}
+                                        data-error-callback={() => setTurnstileToken('')}
+                                        data-theme="dark"
+                                        ref={turnstileRef}
+                                    ></div>
+                                </div>
+                            )}
 
                             <Button
                                 className="w-full py-2 bg-primary/90 hover:bg-primary text-white rounded-lg transition-all duration-200 backdrop-blur-sm"
