@@ -7,6 +7,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/hooks/useAuth";
 import TableManagement from "@/components/tables/Table";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -632,22 +633,22 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser, updateUser, fet
         id,
         username,
         admin: (
-            <span className={`px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B] ${
-                subscription?.plan === 'Admin' ? 'text-blue-400' :
-                subscription?.plan === 'Founder' ? 'text-red-400' :
-                'text-gray-400'
-            }`}>
+            <Badge variant={
+                subscription?.plan === 'Admin' ? 'default' :
+                subscription?.plan === 'Founder' ? 'destructive' :
+                'secondary'
+            }>
                 {subscription?.plan || 'User'}
-            </span>
+            </Badge>
         ),
         status: banned ? (
-            <span className="px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B] text-red-400">
+            <Badge variant="destructive">
                 Banned
-            </span>
+            </Badge>
         ) : (
-            <span className="px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B] text-green-400">
+            <Badge variant="success">
                 Active
-            </span>
+            </Badge>
         ),
         createdAt: new Date(created_at).toLocaleDateString(),
         action: (

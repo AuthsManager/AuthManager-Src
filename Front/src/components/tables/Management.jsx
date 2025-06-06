@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { toast } from "sonner";
 import moment from 'moment';
 import TableManagement from "./Table";
+import { Badge } from "@/components/ui/badge";
 import { Ban, RefreshCw, Pencil, Trash2, Edit } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Label } from "@/components/ui/label";
@@ -248,12 +249,13 @@ const LicenseManagement = ({ licenses, renewLicense, deleteLicense }) => {
         name,
         expiration: moment(expiration).format('DD/MM/YYYY'),
         status: (
-            <span className={`px-2 py-1 rounded-md text-sm font-medium bg-[#1B2B4B]
-                ${used ? 'text-yellow-400' :
-                Date.now() < expiration ? 'text-green-400' :
-                'text-red-400'}`}>
+            <Badge variant={
+                used ? 'warning' :
+                Date.now() < expiration ? 'success' :
+                'destructive'
+            }>
                 {used ? 'Used' : Date.now() < expiration ? 'Active' : 'Expired'}
-            </span>
+            </Badge>
         ),
         linkedApp: user.applications.find(app => app.id === appId)?.name || 'Unknown',
         actions: (
