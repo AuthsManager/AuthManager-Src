@@ -13,7 +13,20 @@ const getLicenses = async (req, res) => {
         return res.status(403).json({ message: 'Account suspended. Access denied.' });
     }
 
-    const licenses = req.user.isAdmin ? await License.find({ active: true }) || [] : await License.find({ ownerId: req.user.id, active: true }) || [];
+    let licenses;
+    if (req.user.isAdmin) {
+        const allLicenses = await License.find({}) || [];
+        const User = require('../models/User');
+        licenses = [];
+        for (const license of allLicenses) {
+            const owner = await User.findOne({ id: license.ownerId });
+            if (owner && !owner.banned) {
+                licenses.push(license);
+            }
+        }
+    } else {
+        licenses = await License.find({ ownerId: req.user.id }) || [];
+    }
 
     return res.json(licenses.map(({ user, used, ownerId, appId, id, createdAt, name, expiration, active }) => ({ user, used, ownerId, appId, id, createdAt, name, expiration, active })));
 };

@@ -19,11 +19,25 @@ const getUsers = async (req, res) => {
     
     let users;
     if (req.user.isAdmin && ownerId) {
-        users = await SubUser.find({ ownerId, active: true }) || [];
+        const User = require('../models/User');
+        const owner = await User.findOne({ id: ownerId });
+        if (owner && owner.banned) {
+            users = []; 
+        } else {
+            users = await SubUser.find({ ownerId }) || [];
+        }
     } else if (req.user.isAdmin) {
-        users = await SubUser.find({ active: true }) || [];
+        const allSubUsers = await SubUser.find({}) || [];
+        const User = require('../models/User');
+        users = [];
+        for (const subuser of allSubUsers) {
+            const owner = await User.findOne({ id: subuser.ownerId });
+            if (owner && !owner.banned) {
+                users.push(subuser);
+            }
+        }
     } else {
-        users = await SubUser.find({ ownerId: req.user.id, active: true }) || [];
+        users = await SubUser.find({ ownerId: req.user.id }) || [];
     }
 
     return res.json(users.map(({ id, username, appId, active }) => ({ id, username, appId, active })));

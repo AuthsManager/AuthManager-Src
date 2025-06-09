@@ -41,14 +41,11 @@ const createApp = async (req, res) => {
 };
 
 const getApps = async (req, res) => {
-    if (await checkUserBanned(req.user.id)) {
-        return res.status(403).json({ message: 'Account suspended. Access denied.' });
-    }
-
+    
     let apps;
     
     if (req.user.isAdmin) {
-        apps = await App.find({ active: true });
+        apps = await App.find({});
         const appsWithOwnerInfo = await Promise.all(apps.map(async (app) => {
             const owner = await User.findOne({ id: app.ownerId });
             return {
@@ -58,7 +55,7 @@ const getApps = async (req, res) => {
         }));
         apps = appsWithOwnerInfo;
     } else {
-        apps = await App.find({ ownerId: req.user.id, active: true });
+        apps = await App.find({ ownerId: req.user.id });
     }
 
     const formattedApps = apps.map(app => {

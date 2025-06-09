@@ -18,16 +18,8 @@ const checkApp = async (req, res) => {
     if (!ownerId) return res.status(400).json({ message: 'App ownerId is required.' });
     if (!secret) return res.status(400).json({ message: 'App secret is required.' });
 
-    if (await checkUserBanned(ownerId)) {
-        return res.status(403).json({ message: 'Account suspended. Access denied.' });
-    }
-
     const app = await App.findOne({ name, ownerId, secret });
     if (!app) return res.status(404).json({ message: 'This app does not exist.' });
-    
-    if (!app.active) {
-        return res.status(403).json({ message: 'This app is currently inactive.' });
-    }
 
     return res.status(204).send(null);
 };
