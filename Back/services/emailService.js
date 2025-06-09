@@ -4,6 +4,7 @@ require('dotenv').config();
 const resend = new Resend(process.env.OTP_RESEND_KEY);
 const emailResend = new Resend(process.env.EMAIL_RESEND_KEY);
 const passwordResend = new Resend(process.env.PWD_RESEND_KEY);
+const banResend = new Resend(process.env.BAN_RESEND_KEY);
 
 const sendOTPEmail = async (email, otpCode, username) => {
     try {
@@ -160,8 +161,69 @@ const sendPasswordReset = async (email, resetCode, username) => {
     }
 };
 
+const sendBanNotification = async (email, username, isBanned) => {
+    try {
+        const { data, error } = await banResend.emails.send({
+            from: 'AuthManager <noreply@authmanager.xyz>',
+            to: [email],
+            subject: `Account ${isBanned ? 'Suspended' : 'Reactivated'} - AuthManager`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+                    <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h1 style="color: #2563eb; text-align: center; margin-bottom: 30px;">AuthManager</h1>
+                        
+                        <h2 style="color: #333; margin-bottom: 20px;">Hello ${username},</h2>
+                        
+                        ${isBanned ? `
+                            <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                                <h3 style="color: #dc2626; margin: 0 0 10px 0;">Account Suspended</h3>
+                                <p style="color: #991b1b; margin: 0; font-size: 16px;">
+                                    Your account has been suspended by an administrator. You will no longer be able to access AuthManager services.
+                                </p>
+                            </div>
+                            
+                            <p style="color: #666; font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
+                                If you believe this action was taken in error, please contact our support team for assistance.
+                            </p>
+                        ` : `
+                            <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                                <h3 style="color: #16a34a; margin: 0 0 10px 0;">Account Reactivated</h3>
+                                <p style="color: #15803d; margin: 0; font-size: 16px;">
+                                    Your account has been reactivated by an administrator. You can now access AuthManager services again.
+                                </p>
+                            </div>
+                            
+                            <p style="color: #666; font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
+                                Welcome back! You can now log in to your account and resume using our services.
+                            </p>
+                        `}
+                        
+                        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
+                            <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+                                This email has been sent automatically, please do not reply.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `
+        });
+
+        if (error) {
+            console.error('Error while sending ban notification:', error);
+            return { success: false, error };
+        }
+
+        console.log('Ban notification successfully sent:', data);
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error while sending ban notification:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 module.exports = {
     sendOTPEmail,
     sendEmailVerification,
-    sendPasswordReset
+    sendPasswordReset,
+    sendBanNotification
 };

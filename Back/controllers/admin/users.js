@@ -5,6 +5,7 @@ const User = require('../../models/User');
 const License = require('../../models/License');
 const SubUser = require('../../models/SubUser');
 const App = require('../../models/App');
+const { sendBanNotification } = require('../../services/emailService');
 
 const getUsers = async (req, res) => {
     try {
@@ -212,6 +213,14 @@ const banUser = async (req, res) => {
             { 'settings.banned': !user.settings.banned },
             { new: true, select: '-password' }
         );
+
+        if (updatedUser && updatedUser.email && updatedUser.username) {
+            try {
+                await sendBanNotification(updatedUser.email, updatedUser.username, updatedUser.settings.banned);
+            } catch (emailError) {
+                console.error('Error sending ban notification email:', emailError);
+            }
+        }
 
         return res.json({
             message: `User ${updatedUser.settings.banned ? 'banned' : 'unbanned'} successfully.`,
