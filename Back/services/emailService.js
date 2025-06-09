@@ -185,6 +185,12 @@ const sendBanNotification = async (email, username, isBanned) => {
                             <p style="color: #666; font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
                                 If you believe this action was taken in error, please contact our support team for assistance.
                             </p>
+                            
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="mailto:support@authmanager.xyz" style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">
+                                    Contact Support
+                                </a>
+                            </div>
                         ` : `
                             <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 20px 0; border-radius: 4px;">
                                 <h3 style="color: #16a34a; margin: 0 0 10px 0;">Account Reactivated</h3>
