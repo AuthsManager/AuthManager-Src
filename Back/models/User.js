@@ -21,6 +21,12 @@ const userSchema = new Schema({
     },
     settings: {
         twoFactor: { type: Boolean, default: false }
+    },
+    twoFactorAuth: {
+        secret: String,
+        backupCodes: [String],
+        isEnabled: { type: Boolean, default: false },
+        lastUsed: Number
     }
 });
 
