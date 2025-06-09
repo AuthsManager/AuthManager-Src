@@ -27,6 +27,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tooltip": "^1.1.1",
+    "authenticator": "^1.1.5",
     "boxicons": "^2.1.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
