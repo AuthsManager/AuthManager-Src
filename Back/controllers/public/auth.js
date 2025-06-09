@@ -24,6 +24,10 @@ const checkApp = async (req, res) => {
 
     const app = await App.findOne({ name, ownerId, secret });
     if (!app) return res.status(404).json({ message: 'This app does not exist.' });
+    
+    if (!app.active) {
+        return res.status(403).json({ message: 'This app is currently inactive.' });
+    }
 
     return res.status(204).send(null);
 };
@@ -42,9 +46,11 @@ const login = async (req, res) => {
 
         const userLicense = await License.findOne({ name: license, ownerId });
         if (!userLicense) return res.status(400).json({ message: 'This license is not valid.' });
+        if (!userLicense.active) return res.status(403).json({ message: 'This license is currently inactive.' });
 
         const user = await SubUser.findOne({ licenseId: userLicense.id, ownerId });
         if (!user) return res.status(400).json({ message: 'This license is not valid.' });
+        if (!user.active) return res.status(403).json({ message: 'This account is currently inactive.' });
 
         if (hwid !== user.hwid) return res.status(400).json({ message: 'The hwid is not the same as the one registered.' });
 
@@ -56,6 +62,7 @@ const login = async (req, res) => {
 
     const user = await SubUser.findOne({ username, ownerId });
     if (!user) return res.status(400).json({ message: 'Username or password is not valid.' });
+    if (!user.active) return res.status(403).json({ message: 'This account is currently inactive.' });
 
     if (!bcrypt.compareSync(password, user.password)) return res.status(400).json({ message: 'Username or password is not valid.' });
 
@@ -84,6 +91,7 @@ const register = async (req, res) => {
     const userLicense = await License.findOne({ name: license, ownerId });
 
     if (!userLicense) return res.status(400).json({ message: 'This license is not valid.' });
+    if (!userLicense.active) return res.status(403).json({ message: 'This license is currently inactive.' });
     if (userLicense.expiration < Date.now()) return res.status(400).json({ message: 'This license has expired.' });
     if (userLicense.used) return res.status(400).json({ message: 'This license is already used.' });
 

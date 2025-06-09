@@ -7,7 +7,8 @@ const licenseSchema = new Schema({
     used: { type: Boolean, default: false },
     name: String,
     createdAt: Number,
-    expiration: Number
+    expiration: Number,
+    active: { type: Boolean, default: true }
 });
 
 module.exports = model('license', licenseSchema);

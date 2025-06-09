@@ -48,7 +48,7 @@ const getApps = async (req, res) => {
     let apps;
     
     if (req.user.isAdmin) {
-        apps = await App.find({});
+        apps = await App.find({ active: true });
         const appsWithOwnerInfo = await Promise.all(apps.map(async (app) => {
             const owner = await User.findOne({ id: app.ownerId });
             return {
@@ -58,7 +58,7 @@ const getApps = async (req, res) => {
         }));
         apps = appsWithOwnerInfo;
     } else {
-        apps = await App.find({ ownerId: req.user.id });
+        apps = await App.find({ ownerId: req.user.id, active: true });
     }
 
     const formattedApps = apps.map(app => {
@@ -84,6 +84,7 @@ const renameApp = async (req, res) => {
 
     const app = await App.findOne({ id: appId });
     if (!app) return res.status(400).json({ message: 'The provided app doesn\'t exist.' });
+    if (!app.active) return res.status(403).json({ message: 'This app is currently inactive.' });
 
     if (newName === app.name) return res.status(400).json({ message: 'The new app name must be different from the old one.' });
 
@@ -105,6 +106,7 @@ const deleteApp = async (req, res) => {
 
     const app = await App.findOne({ id: appId });
     if (!app) return res.status(400).json({ message: 'The provided app doesn\'t exist.' });
+    if (!app.active) return res.status(403).json({ message: 'This app is currently inactive.' });
 
     await app.deleteOne();
     await License.deleteMany({ appId });

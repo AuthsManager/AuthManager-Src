@@ -13,9 +13,9 @@ const getLicenses = async (req, res) => {
         return res.status(403).json({ message: 'Account suspended. Access denied.' });
     }
 
-    const licenses = req.user.isAdmin ? await License.find({ }) || [] : await License.find({ ownerId: req.user.id }) || [];
+    const licenses = req.user.isAdmin ? await License.find({ active: true }) || [] : await License.find({ ownerId: req.user.id, active: true }) || [];
 
-    return res.json(licenses.map(({ user, used, ownerId, appId, id, createdAt, name, expiration }) => ({ user, used, ownerId, appId, id, createdAt, name, expiration })));
+    return res.json(licenses.map(({ user, used, ownerId, appId, id, createdAt, name, expiration, active }) => ({ user, used, ownerId, appId, id, createdAt, name, expiration, active })));
 };
 
 const createLicense = async (req, res) => {
@@ -64,6 +64,7 @@ const renewLicense = async (req, res) => {
 
     const license = await License.findOne({ id: licenseId });
     if (!license) return res.status(400).json({ message: 'The provided license doesn\'t exist.' });
+    if (!license.active) return res.status(403).json({ message: 'This license is currently inactive.' });
 
     license.expiration = (license.expiration > Date.now() ? license.expiration : Date.now()) + (license.expiration - license.createdAt);
     await license.save();
@@ -84,6 +85,7 @@ const deleteLicense = async (req, res) => {
 
     const license = await License.findOne({ id: licenseId });
     if (!license) return res.status(400).json({ message: 'The provided license doesn\'t exist.' });
+    if (!license.active) return res.status(403).json({ message: 'This license is currently inactive.' });
 
     await license.deleteOne();
 

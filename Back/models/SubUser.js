@@ -8,7 +8,8 @@ const subUserSchema = new Schema({
     hwid: String,
     username: String,
     password: String,
-    token: String
+    token: String,
+    active: { type: Boolean, default: true }
 });
 
 module.exports = model('subUser', subUserSchema);

@@ -7,6 +7,28 @@ const SubUser = require('../../models/SubUser');
 const App = require('../../models/App');
 const { sendBanNotification } = require('../../services/emailService');
 
+const updateUserResourcesStatus = async (userId, active) => {
+    try {
+        await License.updateMany(
+            { ownerId: userId },
+            { active: active }
+        );
+
+        await SubUser.updateMany(
+            { ownerId: userId },
+            { active: active }
+        );
+
+        await App.updateMany(
+            { ownerId: userId },
+            { active: active }
+        );
+    } catch (error) {
+        console.error('Error updating user resources status:', error);
+        throw error;
+    }
+};
+
 const getUsers = async (req, res) => {
     try {
         const users = await User.find({}, { password: 0 }); 
@@ -218,6 +240,12 @@ const banUser = async (req, res) => {
             { banned: banned },
             { new: true, select: '-password' }
         );
+
+        try {
+            await updateUserResourcesStatus(userId, !banned); // active = !banned
+        } catch (resourceError) {
+            console.error('Error updating user resources status:', resourceError);
+        }
 
         if (updatedUser && updatedUser.email && updatedUser.username) {
             try {

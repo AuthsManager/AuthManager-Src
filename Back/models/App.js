@@ -5,7 +5,8 @@ const appSchema = new Schema({
     id: String,
     secret: String,
     name: String,
-    version: { type: String, default: '1.0.0' }
+    version: { type: String, default: '1.0.0' },
+    active: { type: Boolean, default: true }
 });
 
 module.exports = model('App', appSchema);

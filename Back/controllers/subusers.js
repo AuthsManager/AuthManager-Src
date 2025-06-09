@@ -19,14 +19,14 @@ const getUsers = async (req, res) => {
     
     let users;
     if (req.user.isAdmin && ownerId) {
-        users = await SubUser.find({ ownerId }) || [];
+        users = await SubUser.find({ ownerId, active: true }) || [];
     } else if (req.user.isAdmin) {
-        users = await SubUser.find() || [];
+        users = await SubUser.find({ active: true }) || [];
     } else {
-        users = await SubUser.find({ ownerId: req.user.id }) || [];
+        users = await SubUser.find({ ownerId: req.user.id, active: true }) || [];
     }
 
-    return res.json(users.map(({ id, username, appId }) => ({ id, username, appId })));
+    return res.json(users.map(({ id, username, appId, active }) => ({ id, username, appId, active })));
 };
 
 const createUser = async (req, res) => {
@@ -71,6 +71,7 @@ const updateUser = async (req, res) => {
 
     const user = await SubUser.findOne({ id: userId });
     if (!user) return res.status(400).json({ message: 'The provided user doesn\'t exist.' });
+    if (!user.active) return res.status(403).json({ message: 'This user account is currently inactive.' });
 
     if (!req.user.isAdmin && user.ownerId !== req.user.id) {
         return res.status(403).json({ message: 'You don\'t have permission to update this user.' });
@@ -115,6 +116,7 @@ const deleteUser = async (req, res) => {
 
     const user = await SubUser.findOne({ id: userId });
     if (!user) return res.status(400).json({ message: 'The provided user doesn\'t exist.' });
+    if (!user.active) return res.status(403).json({ message: 'This user account is currently inactive.' });
 
     await user.deleteOne();
 
