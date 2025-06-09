@@ -41,13 +41,17 @@ export function AuthWrapper({ children }) {
 		},
 		onError: (error) => {
 			if (error?.status === 403) {
-				localStorage.removeItem('token');
+				// localStorage.removeItem('token');
 			}
 		},
 		revalidateOnFocus: false,
 		revalidateIfStale: false,
 		revalidateOnReconnect: false
 	});
+
+	if (error?.status === 403 || (user && user.settings?.banned)) {
+		return <Banned />;
+	}
 
 	// if (location.pathname.startsWith('/auth/') && auth) return window.location.replace('/dash/dashboard');
   
@@ -61,10 +65,6 @@ export function AuthWrapper({ children }) {
   
 	if (isLoading) {
 	  	return <Loader />;
-	}
-
-	if (error?.status === 403 || (user && user.banned)) {
-		return <Banned />;
 	}
 
 	if (location.pathname.startsWith('/admin') && user && !['Admin', 'Founder'].includes(user.subscription.plan)) return <Login />;
