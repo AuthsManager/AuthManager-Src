@@ -194,26 +194,31 @@ const banUser = async (req, res) => {
             return res.status(400).json({ message: 'User ID is required.' });
         }
 
+        if (req.user.id === userId) {
+            return res.status(403).json({ message: 'You cannot ban yourself.' });
+        }
+
         const user = await User.findOne({ id: userId });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
+        if (user.subscription.plan === 'Founder') {
+            return res.status(403).json({ message: 'Founders cannot be banned.' });
+        }
+
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { banned: !user.banned },
+            { 'settings.banned': !user.settings.banned },
             { new: true, select: '-password' }
         );
 
         return res.json({
-            message: `User ${updatedUser.banned ? 'banned' : 'unbanned'} successfully.`,
+            message: `User ${updatedUser.settings.banned ? 'banned' : 'unbanned'} successfully.`,
             user: {
                 id: updatedUser.id,
                 username: updatedUser.username,
                 email: updatedUser.email,
-                banned: updatedUser.banned,
-                isVerified: updatedUser.isVerified,
-                isEmailVerified: updatedUser.isEmailVerified,
                 subscription: updatedUser.subscription,
                 settings: updatedUser.settings
             }
