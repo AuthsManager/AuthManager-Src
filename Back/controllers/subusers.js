@@ -1,10 +1,20 @@
-const crypto = require('node:crypto');
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const utils = require('../utils');
 const App = require('../models/App');
 const SubUser = require('../models/SubUser');
+const User = require('../models/User');
+
+const checkUserBanned = async (userId) => {
+    const user = await User.findOne({ id: userId });
+    return user && user.banned;
+};
 
 const getUsers = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { ownerId } = req.query;
     
     let users;
@@ -20,6 +30,10 @@ const getUsers = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { username, password, appId } = req.body;
 
     if (!username) return res.status(400).json({ message: 'Username is required.' });
@@ -48,6 +62,10 @@ const createUser = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { userId } = req.params;
     const { username, password, appId } = req.body;
 
@@ -89,6 +107,10 @@ const updateUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { userId } = req.params;
 
     const user = await SubUser.findOne({ id: userId });

@@ -4,6 +4,12 @@ const utils = require('../../utils');
 const App = require('../../models/App');
 const License = require('../../models/License');
 const SubUser = require('../../models/SubUser');
+const User = require('../../models/User');
+
+const checkUserBanned = async (ownerId) => {
+    const user = await User.findOne({ id: ownerId });
+    return user && user.banned;
+};
 
 const checkApp = async (req, res) => {
     const { name, ownerId, secret } = req.body;
@@ -11,6 +17,10 @@ const checkApp = async (req, res) => {
     if (!name) return res.status(400).json({ message: 'App name is required.' });
     if (!ownerId) return res.status(400).json({ message: 'App ownerId is required.' });
     if (!secret) return res.status(400).json({ message: 'App secret is required.' });
+
+    if (await checkUserBanned(ownerId)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
 
     const app = await App.findOne({ name, ownerId, secret });
     if (!app) return res.status(404).json({ message: 'This app does not exist.' });
@@ -22,6 +32,10 @@ const login = async (req, res) => {
     const { username, password, ownerId, license, hwid } = req.body;
 
     if (!ownerId) return res.status(400).json({ message: 'Owner id is required.' });
+
+    if (await checkUserBanned(ownerId)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
 
     if (license) {
         if (!hwid) return res.status(400).json({ message: 'Hwid is required.' });
@@ -56,6 +70,10 @@ const register = async (req, res) => {
     if (!license) return res.status(400).json({ message: 'License is required.' });
     if (!hwid) return res.status(400).json({ message: 'Hwid is required.' });
     if (!ownerId) return res.status(400).json({ message: 'Owner id is required.' });
+
+    if (await checkUserBanned(ownerId)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
 
     const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,15}$/;
     if (!usernameRegex.test(username)) return res.status(400).json({ message: 'The provided username is not valid.' });

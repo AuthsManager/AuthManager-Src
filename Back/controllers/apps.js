@@ -1,10 +1,20 @@
-const crypto = require('node:crypto');
+const crypto = require('crypto');
 const App = require('../models/App');
 const License = require('../models/License');
 const SubUser = require('../models/SubUser');
+const User = require('../models/User');
 const utils = require('../utils');
 
+const checkUserBanned = async (userId) => {
+    const user = await User.findOne({ id: userId });
+    return user && user.banned;
+};
+
 const createApp = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { name } = req.body;
     if (!name) return res.status(400).json({ message: 'App name is required.' });
 
@@ -31,6 +41,10 @@ const createApp = async (req, res) => {
 };
 
 const getApps = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     let apps;
     
     if (req.user.isAdmin) {
@@ -56,8 +70,12 @@ const getApps = async (req, res) => {
 };
 
 const renameApp = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { appId } = req.params;
-    const { newName } = req.body;
+    const { name: newName } = req.body;
 
     if (!newName) return res.status(400).json({ message: 'App name is required.' });
 
@@ -79,6 +97,10 @@ const renameApp = async (req, res) => {
 };
 
 const deleteApp = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { appId } = req.params;
 
     const app = await App.findOne({ id: appId });

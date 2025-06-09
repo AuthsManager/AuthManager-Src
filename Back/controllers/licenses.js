@@ -1,14 +1,28 @@
-const crypto = require('node:crypto');
+const crypto = require('crypto');
 const License = require('../models/License');
 const App = require('../models/App');
+const User = require('../models/User');
+
+const checkUserBanned = async (userId) => {
+    const user = await User.findOne({ id: userId });
+    return user && user.banned;
+};
 
 const getLicenses = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const licenses = req.user.isAdmin ? await License.find({ }) || [] : await License.find({ ownerId: req.user.id }) || [];
 
     return res.json(licenses.map(({ user, used, ownerId, appId, id, createdAt, name, expiration }) => ({ user, used, ownerId, appId, id, createdAt, name, expiration })));
 };
 
 const createLicense = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { name, expiration, appId } = req.body;
 
     if (!name) return res.status(400).json({ message: 'License name is required.' });
@@ -42,6 +56,10 @@ const createLicense = async (req, res) => {
 };
 
 const renewLicense = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { licenseId } = req.params;
 
     const license = await License.findOne({ id: licenseId });
@@ -58,6 +76,10 @@ const renewLicense = async (req, res) => {
 };
 
 const deleteLicense = async (req, res) => {
+    if (await checkUserBanned(req.user.id)) {
+        return res.status(403).json({ message: 'Account suspended. Access denied.' });
+    }
+
     const { licenseId } = req.params;
 
     const license = await License.findOne({ id: licenseId });
