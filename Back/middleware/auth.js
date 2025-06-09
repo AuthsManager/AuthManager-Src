@@ -10,6 +10,8 @@ module.exports = async (req, res, next) => {
     const user = await User.findOne({ token });
     if (!user) return res.status(401).json({ message: 'Unauthorized.' });
 
+    if (user.banned) return res.status(403).json({ message: 'Account banned.', banned: true });
+
     if (req.url.startsWith('/api/v1/admin') && (type !== 'Admin' || !['Admin', 'Founder'].includes(user.subscription.plan))) return res.status(401).json({ message: 'Unauthorized.' });
 
     req.user = user.toJSON();
