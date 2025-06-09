@@ -190,9 +190,14 @@ const deleteUser = async (req, res) => {
 const banUser = async (req, res) => {
     try {
         const { userId } = req.params;
+        const { banned } = req.body;
         
         if (!userId) {
             return res.status(400).json({ message: 'User ID is required.' });
+        }
+
+        if (typeof banned !== 'boolean') {
+            return res.status(400).json({ message: 'Banned status must be a boolean.' });
         }
 
         if (req.user.id === userId) {
@@ -210,26 +215,27 @@ const banUser = async (req, res) => {
 
         const updatedUser = await User.findOneAndUpdate(
             { id: userId },
-            { 'settings.banned': !user.settings.banned },
+            { banned: banned },
             { new: true, select: '-password' }
         );
 
         if (updatedUser && updatedUser.email && updatedUser.username) {
             try {
-                await sendBanNotification(updatedUser.email, updatedUser.username, updatedUser.settings.banned);
+                await sendBanNotification(updatedUser.email, updatedUser.username, updatedUser.banned);
             } catch (emailError) {
                 console.error('Error sending ban notification email:', emailError);
             }
         }
 
         return res.json({
-            message: `User ${updatedUser.settings.banned ? 'banned' : 'unbanned'} successfully.`,
+            message: `User ${updatedUser.banned ? 'banned' : 'unbanned'} successfully.`,
             user: {
                 id: updatedUser.id,
                 username: updatedUser.username,
                 email: updatedUser.email,
                 subscription: updatedUser.subscription,
-                settings: updatedUser.settings
+                settings: updatedUser.settings,
+                banned: updatedUser.banned
             }
         });
     } catch (error) {
