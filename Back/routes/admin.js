@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const router = Router();
 
-const { getUsers, createUser, updateUser, deleteUser } = require('../controllers/admin/users');
+const { getUsers, createUser, updateUser, deleteUser, banUser } = require('../controllers/admin/users');
 const { getLicenses, createLicense, renewLicense, deleteLicense } = require('../controllers/licenses');
 const { getApps, createApp, renameApp, deleteApp } = require('../controllers/apps');
 
@@ -10,6 +10,7 @@ const authMiddleware = require('../middleware/auth');
 router.get('/users', authMiddleware, getUsers);
 router.post('/users', authMiddleware, createUser);
 router.put('/users/:userId', authMiddleware, updateUser);
+router.put('/users/:userId/ban', authMiddleware, banUser);
 router.delete('/users/:userId', authMiddleware, deleteUser);
 
 router.get('/licenses', authMiddleware, getLicenses);

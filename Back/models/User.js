@@ -21,7 +21,8 @@ const userSchema = new Schema({
     },
     settings: {
         twoFactor: { type: Boolean, default: false }
-    }
+    },
+    banned: { type: Boolean, default: false }
 });
 
 module.exports = model('user', userSchema);

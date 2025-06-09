@@ -186,9 +186,48 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const banUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required.' });
+        }
+
+        const user = await User.findOne({ id: userId });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { id: userId },
+            { banned: !user.banned },
+            { new: true, select: '-password' }
+        );
+
+        return res.json({
+            message: `User ${updatedUser.banned ? 'banned' : 'unbanned'} successfully.`,
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                banned: updatedUser.banned,
+                isVerified: updatedUser.isVerified,
+                isEmailVerified: updatedUser.isEmailVerified,
+                subscription: updatedUser.subscription,
+                settings: updatedUser.settings
+            }
+        });
+    } catch (error) {
+        console.error('Error banning/unbanning user:', error);
+        return res.status(500).json({ message: 'Failed to update user ban status.' });
+    }
+}
+
 module.exports = {
     getUsers,
     createUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    banUser
 };
