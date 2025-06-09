@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const utils = require('../utils');
 const User = require('../models/User');
 const { sendOTPEmail, sendPasswordReset } = require('../services/emailService');
-const twoFactorService = require('../services/twoFactorService');
 
 const verifyTurnstileToken = async (token) => {
     try {
@@ -175,14 +174,6 @@ const login = async (req, res) => {
     if (!existing.isVerified) return res.status(400).json({ message: 'Please verify your account before logging in.' });
     if (!bcrypt.compareSync(password, existing.password)) return res.status(400).json({  message: 'Email or password is invalid.' });
 
-    if (existing.twoFactorAuth && existing.twoFactorAuth.isEnabled) {
-        return res.json({ 
-            requires2FA: true,
-            userId: existing.id,
-            message: 'Please provide your 2FA token to complete login.' 
-        });
-    }
-
     return res.json({ token: existing.token });
 }
 
@@ -273,157 +264,11 @@ const resetPassword = async (req, res) => {
     }
 };
 
-const setup2FA = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const user = await User.findOne({ id: userId });
-        
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        const secret = twoFactorService.generateSecret();
-        const qrCodeURL = twoFactorService.generateQRCodeURL(secret, user.username);
-        
-        user.twoFactorAuth.secret = secret;
-        await user.save();
-        
-        return res.json({ 
-            secret,
-            qrCodeURL,
-            message: 'Scan the QR code with your authenticator app and verify with a token to enable 2FA.' 
-        });
-    } catch (error) {
-        console.error('Error in setup 2FA:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
-    }
-};
-
-const enable2FA = async (req, res) => {
-    try {
-        const { token } = req.body;
-        const userId = req.user.id;
-        
-        if (!token) {
-            return res.status(400).json({ message: 'Token is required.' });
-        }
-        
-        const user = await User.findOne({ id: userId });
-        if (!user || !user.twoFactorAuth.secret) {
-            return res.status(400).json({ message: 'No 2FA setup found. Please setup 2FA first.' });
-        }
-        
-        const isValid = twoFactorService.verifyToken(token, user.twoFactorAuth.secret);
-        if (!isValid) {
-            return res.status(400).json({ message: 'Invalid token. Please try again.' });
-        }
-        
-        const backupCodes = twoFactorService.generateBackupCodes();
-        user.twoFactorAuth.isEnabled = true;
-        user.twoFactorAuth.backupCodes = backupCodes;
-        user.settings.twoFactor = true;
-        await user.save();
-        
-        return res.json({ 
-            message: '2FA enabled successfully!',
-            backupCodes
-        });
-    } catch (error) {
-        console.error('Error in enable 2FA:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
-    }
-};
-
-const disable2FA = async (req, res) => {
-    try {
-        const { password } = req.body;
-        const userId = req.user.id;
-        
-        if (!password) {
-            return res.status(400).json({ message: 'Password is required to disable 2FA.' });
-        }
-        
-        const user = await User.findOne({ id: userId });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-        
-        const isPasswordValid = bcrypt.compareSync(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid password.' });
-        }
-        
-        user.twoFactorAuth.secret = undefined;
-        user.twoFactorAuth.backupCodes = [];
-        user.twoFactorAuth.isEnabled = false;
-        user.settings.twoFactor = false;
-        await user.save();
-        
-        return res.json({ message: '2FA disabled successfully!' });
-    } catch (error) {
-        console.error('Error in disable 2FA:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
-    }
-};
-
-const verify2FA = async (req, res) => {
-    try {
-        const { token, backupCode, userId } = req.body;
-        
-        if (!token && !backupCode) {
-            return res.status(400).json({ message: 'Token or backup code is required.' });
-        }
-        
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required.' });
-        }
-        
-        const user = await User.findOne({ id: userId });
-        if (!user || !user.twoFactorAuth.isEnabled) {
-            return res.status(400).json({ message: 'Invalid request.' });
-        }
-        
-        let isValid = false;
-        
-        if (token) {
-            isValid = twoFactorService.verifyToken(token, user.twoFactorAuth.secret);
-        } else if (backupCode) {
-            isValid = twoFactorService.verifyBackupCode(backupCode, user.twoFactorAuth.backupCodes);
-            if (isValid) {
-                user.twoFactorAuth.backupCodes = twoFactorService.removeUsedBackupCode(backupCode, user.twoFactorAuth.backupCodes);
-                await user.save();
-            }
-        }
-        
-        if (!isValid) {
-            return res.status(400).json({ message: 'Invalid token or backup code.' });
-        }
-        
-        await user.save();
-        
-        const jwtToken = utils.generateString(56);
-        user.token = jwtToken;
-        await user.save();
-        
-        return res.json({ 
-            token: jwtToken,
-            message: '2FA verification successful!' 
-        });
-    } catch (error) {
-        console.error('Error in verify 2FA:', error);
-        return res.status(500).json({ message: 'Internal server error.' });
-    }
-};
-
 module.exports = {
     login,
     register,
     verifyOTP,
     resendOTP,
     forgotPassword,
-    resetPassword,
-    setup2FA,
-    enable2FA,
-    disable2FA,
-    verify2FA
+    resetPassword
 };
