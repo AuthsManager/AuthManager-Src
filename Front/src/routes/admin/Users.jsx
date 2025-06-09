@@ -660,6 +660,7 @@ const UserManagementAdmin = ({ users, deleteUser, toggleBanUser, updateUser, fet
                     size="icon" 
                     className={`${banned ? 'text-green-400 hover:text-green-500' : 'text-red-400 hover:text-red-500'} bg-[#1B2B4B] hover:bg-[#2C3B5B]`}
                     onClick={() => toggleBanUser(id, banned)}
+                    disabled={currentUser?.id === id || subscription?.plan === 'Founder'}
                 >
                     {banned ? <CheckCircle className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                 </Button>
